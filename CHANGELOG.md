@@ -7,6 +7,23 @@ Versionierung folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.0.1] - 2025-11-17
+
+### Fixed
+
+- **Browser-Spracherkennung**: Die automatische Erkennung der Browser-Sprache funktioniert jetzt zuverlässig
+  - Hugo-Template setzt `data-embed-consent-language` nur noch, wenn explizit konfiguriert
+  - Wenn nicht konfiguriert, erkennt JavaScript automatisch die Browser-Sprache (`navigator.language`)
+  - Behebt Problem, dass Consent-Banner immer auf Englisch angezeigt wurden, obwohl Browser auf Deutsch war
+
+### Changed
+
+- **Dokumentation**: README aktualisiert mit Informationen zur automatischen Spracherkennung
+  - Neuer Abschnitt "Automatische Spracherkennung" erklärt das Standardverhalten
+  - Konfigurationstabelle zeigt jetzt `auto` als Standardwert für `language`
+
+---
+
 ## [2.0.0] - 2025-11-17
 
 ### 🎉 Major Release: Automatische iframe-Erkennung

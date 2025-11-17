@@ -11,17 +11,16 @@ Einmal installiert, keine manuelle Anpassung von Posts nötig!
 ✅ **Provider-Erkennung**: Erkennt automatisch YouTube, Vimeo, ARTE und andere
 ✅ **Privacy-First**: Keine externen Requests bis zur Einwilligung
 ✅ **LocalStorage Support**: Merkt sich User-Präferenzen
-✅ **Mehrsprachig**: Deutsch und Englisch eingebaut
+✅ **Mehrsprachig**: Deutsch und Englisch eingebaut mit automatischer Browser-Spracherkennung
 ✅ **Theme-bewusst**: Passt sich an dein Design an
 ✅ **Keine Dependencies**: Pure Vanilla JavaScript und CSS
 
 ## Wie funktioniert es?
 
 1. **Du installierst das Plugin** → CSS + JS einbinden
-2. **Du konfigurierst die Sprache** → `config.toml` anpassen
-3. **Fertig!** → Alle iframes werden automatisch geschützt
+2. **Fertig!** → Alle iframes werden automatisch geschützt
 
-**Das wars!** Keine Änderungen an bestehenden Posts nötig.
+**Das wars!** Die Sprache wird automatisch erkannt, keine Änderungen an bestehenden Posts nötig.
 
 ## Quick Start
 
@@ -166,7 +165,7 @@ Schau dir dieses Video an:
 |-----------|-----|---------|--------------|
 | `enableLocalStorage` | boolean | `true` | Speichert User-Präferenz im Browser |
 | `showAlwaysAllowOption` | boolean | `true` | Zeigt "Immer erlauben" Checkbox |
-| `language` | string | `"en"` | Sprache: `"de"` oder `"en"` |
+| `language` | string | auto | Sprache: `"de"` oder `"en"` (auto-detect wenn nicht gesetzt) |
 | `privacyPolicyUrl` | string | `""` | Link zur Datenschutzerklärung |
 
 ### Erweiterte Optionen
@@ -189,7 +188,21 @@ Das Plugin überspringt automatisch iframes mit:
 
 ## Mehrsprachigkeit
 
-### Deutsch
+### Automatische Spracherkennung
+
+**Standardverhalten:** Das Plugin erkennt automatisch die Browser-Sprache (`navigator.language`).
+
+- Browser auf Deutsch → Deutsche Texte werden angezeigt
+- Browser auf Englisch → Englische Texte werden angezeigt
+- Andere Sprachen → Englisch als Fallback
+
+**Keine Konfiguration notwendig!** Wenn du den `language` Parameter **nicht** in der `config.toml` setzt, wird die Sprache automatisch erkannt.
+
+### Sprache manuell festlegen
+
+Falls du die Sprache für alle Besucher festlegen möchtest:
+
+#### Deutsch
 
 ```toml
 [params.embedConsent]
@@ -201,7 +214,7 @@ Das Plugin überspringt automatisch iframes mit:
 - Button: "Inhalt laden"
 - Checkbox: "Externe Medien auf dieser Website immer erlauben"
 
-### Englisch
+#### Englisch
 
 ```toml
 [params.embedConsent]

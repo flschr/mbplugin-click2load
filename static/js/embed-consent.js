@@ -4,7 +4,7 @@
  * Automatically detects and wraps all iframes with consent overlay.
  * No manual shortcode usage required - works with existing iframes!
  *
- * @version 2.0.0
+ * @version 2.0.1
  */
 
 (function() {
