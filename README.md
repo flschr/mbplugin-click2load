@@ -1,4 +1,4 @@
-# Embed Consent Plugin for Hugo / Micro.blog
+# Click-2-Load Plugin for Micro.blog
 
 A privacy-first plugin that automatically adds consent overlays to all iframes on your website.
 
@@ -13,14 +13,7 @@ A privacy-first plugin that automatically adds consent overlays to all iframes o
 
 ## Installation
 
-1. Copy plugin files to your Hugo project:
-
-```bash
-cp -r layouts/ /path/to/your/hugo/site/
-cp -r static/ /path/to/your/hugo/site/
-```
-
-2. Add to your `layouts/_default/baseof.html`:
+1. Add to your `layouts/_default/baseof.html`:
 
 ```html
 <head>
