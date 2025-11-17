@@ -44,6 +44,13 @@ deine-hugo-site/
 ├── static/
 │   ├── css/
 │   │   └── embed-consent.css           # ← Neu
+│   ├── img/                            # ← Neu
+│   │   ├── ARTE-Logo.png               # ← Neu
+│   │   ├── YouTube-Logo.png            # ← Neu
+│   │   ├── Vimeo-Logo.png              # ← Neu
+│   │   ├── Komoot-Logo.png             # ← Neu
+│   │   ├── OSM-Logo.png                # ← Neu
+│   │   └── Google_Maps-Logo.png        # ← Neu
 │   └── js/
 │       └── embed-consent.js            # ← Neu
 ```
@@ -367,6 +374,13 @@ mbplugin-click2load/
 ├── static/
 │   ├── css/
 │   │   └── embed-consent.css          # Styles
+│   ├── img/                           # Provider logos
+│   │   ├── ARTE-Logo.png
+│   │   ├── YouTube-Logo.png
+│   │   ├── Vimeo-Logo.png
+│   │   ├── Komoot-Logo.png
+│   │   ├── OSM-Logo.png
+│   │   └── Google_Maps-Logo.png
 │   └── js/
 │       └── embed-consent.js           # Auto-detection logic
 ├── CHANGELOG.md
@@ -442,6 +456,6 @@ Entwickelt für die Hugo und Micro.blog Community mit Fokus auf Privacy und User
 
 ---
 
-**Version**: 2.0.0
+**Version**: 2.0.2
 **Letztes Update**: 2025-11-17
 **Modus**: Automatische iframe-Erkennung
