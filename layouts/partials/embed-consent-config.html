@@ -13,10 +13,6 @@
 {{- $showAlwaysAllowOption := $config.showAlwaysAllowOption | default true -}}
 {{- $language := $config.language -}}
 {{- $privacyPolicyUrl := $config.privacyPolicyUrl | default "" -}}
-{{- $assetBase := .Site.BaseURL | default "/" -}}
-{{- if not (strings.HasSuffix $assetBase "/") -}}
-    {{- $assetBase = printf "%s/" $assetBase -}}
-{{- end -}}
 
 {{- /* Set data attributes on html element for JavaScript to read */ -}}
 <script>
@@ -24,7 +20,6 @@
     var root = document.documentElement;
     root.setAttribute('data-embed-consent-storage', '{{ $enableLocalStorage }}');
     root.setAttribute('data-embed-consent-always-allow', '{{ $showAlwaysAllowOption }}');
-    root.setAttribute('data-embed-consent-asset-base', '{{ $assetBase }}');
     {{- if $language -}}
     root.setAttribute('data-embed-consent-language', '{{ $language }}');
     {{- end -}}
