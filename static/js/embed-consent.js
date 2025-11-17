@@ -55,13 +55,53 @@
     };
 
     const LOGOS = {
-        arte: '/img/ARTE-Logo.png',
-        youtube: '/img/YouTube-Logo.png',
-        vimeo: '/img/Vimeo-Logo.png',
-        komoot: '/img/Komoot-Logo.png',
-        googlemaps: '/img/Google_Maps-Logo.png',
-        openstreetmap: '/img/OSM-Logo.png'
+        arte: 'img/ARTE-Logo.png',
+        youtube: 'img/YouTube-Logo.png',
+        vimeo: 'img/Vimeo-Logo.png',
+        komoot: 'img/Komoot-Logo.png',
+        googlemaps: 'img/Google_Maps-Logo.png',
+        openstreetmap: 'img/OSM-Logo.png'
     };
+
+    /**
+     * Resolve the base path for plugin assets.
+     * Falls back to "/" when no base path was configured.
+     */
+    function getAssetBasePath() {
+        const root = document.documentElement || document.body;
+        if (!root) {
+            return '/';
+        }
+        const base = root.dataset.embedConsentAssetBase;
+        return base || '/';
+    }
+
+    /**
+     * Build an absolute asset URL that respects the configured base path.
+     */
+    function resolveAssetPath(path) {
+        if (!path) {
+            return '';
+        }
+
+        // If it's already an absolute URL, return as-is
+        if (/^(?:[a-z]+:)?\/\//i.test(path)) {
+            return path;
+        }
+
+        const base = getAssetBasePath();
+        const normalizedBase = base.endsWith('/') ? base : base + '/';
+        const normalizedPath = path.startsWith('/') ? path.slice(1) : path;
+        return normalizedBase + normalizedPath;
+    }
+
+    function getProviderLogoUrl(provider) {
+        const logoPath = PROVIDERS[provider]?.logo;
+        if (!logoPath) {
+            return null;
+        }
+        return resolveAssetPath(logoPath);
+    }
 
     // Provider detection patterns
     const PROVIDERS = {
@@ -258,7 +298,7 @@
      */
     function createOverlay(provider, config, translations) {
         const providerName = getProviderName(provider, config.language);
-        const providerLogo = PROVIDERS[provider]?.logo;
+        const providerLogo = getProviderLogoUrl(provider);
 
         // Use provider-specific text if we know the provider, otherwise use generic text
         let consentText = translations.consentText;

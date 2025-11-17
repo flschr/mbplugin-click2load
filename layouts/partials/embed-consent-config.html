@@ -20,6 +20,7 @@
     var root = document.documentElement;
     root.setAttribute('data-embed-consent-storage', '{{ $enableLocalStorage }}');
     root.setAttribute('data-embed-consent-always-allow', '{{ $showAlwaysAllowOption }}');
+    root.setAttribute('data-embed-consent-asset-base', '{{ "/" | relURL }}');
     {{- if $language -}}
     root.setAttribute('data-embed-consent-language', '{{ $language }}');
     {{- end -}}
