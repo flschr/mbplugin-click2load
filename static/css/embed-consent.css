@@ -252,9 +252,12 @@
 }
 
 .embed-consent-icon img {
-    max-width: 100%;
-    height: auto;
     display: block;
+    max-width: 120px;
+    max-height: 48px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
 }
 
 /* ========================================
