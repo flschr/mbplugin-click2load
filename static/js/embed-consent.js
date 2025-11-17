@@ -176,7 +176,9 @@
                 /arteptwebtv\.akamaized\.net/i
             ],
             name: 'ARTE',
-            logo: LOGOS.arte
+            logo: LOGOS.arte,
+            logoWidth: 120,
+            logoHeight: 30
         },
         komoot: {
             patterns: [

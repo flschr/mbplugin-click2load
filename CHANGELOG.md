@@ -11,6 +11,11 @@ Versionierung folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- **ARTE Logo**: Explizite Dimensionen (120x30) für bessere Darstellung hinzugefügt
+  - Behebt Problem, dass ARTE-Logo nicht korrekt angezeigt wurde
+  - ARTE-Logo verwendet jetzt die gleiche Rendering-Logik wie YouTube und Google Maps
+  - Logo wird nicht mehr verzerrt oder mit falschen Abmessungen dargestellt
+
 - **Dokumentation**: Logo-Dateien (`static/img/`) jetzt in allen Installations-Anleitungen dokumentiert
   - `INSTALL.md` aktualisiert: Dateistruktur zeigt jetzt `static/img/` Ordner mit allen Provider-Logos
   - `README.md` aktualisiert: Quick Start und Dateistruktur zeigen jetzt den `img/` Ordner
