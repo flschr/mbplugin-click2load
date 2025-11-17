@@ -28,6 +28,13 @@ deine-hugo-site/
 ├── static/
 │   ├── css/
 │   │   └── embed-consent.css           # ← Neu
+│   ├── img/                            # ← Neu
+│   │   ├── ARTE-Logo.png               # ← Neu
+│   │   ├── YouTube-Logo.png            # ← Neu
+│   │   ├── Vimeo-Logo.png              # ← Neu
+│   │   ├── Komoot-Logo.png             # ← Neu
+│   │   ├── OSM-Logo.png                # ← Neu
+│   │   └── Google_Maps-Logo.png        # ← Neu
 │   └── js/
 │       └── embed-consent.js            # ← Neu
 ```
@@ -143,13 +150,14 @@ Du solltest sehen:
 
 ## Checkliste
 
-- [ ] Dateien kopiert (`layouts/`, `static/`)
+- [ ] Dateien kopiert (`layouts/`, `static/css/`, `static/js/`, `static/img/`)
 - [ ] `{{ partial "embed-consent-config.html" . }}` im `<head>`
 - [ ] CSS eingebunden (im `<head>`)
 - [ ] JS eingebunden (vor `</body>`)
 - [ ] Konfiguration in `config.toml` / `config.yaml`
 - [ ] Hugo Server gestartet
 - [ ] Consent-Overlay wird angezeigt
+- [ ] Provider-Logos werden angezeigt (ARTE, YouTube, etc.)
 - [ ] iframe lädt nach Klick
 - [ ] Keine Console-Errors (F12 → Console)
 

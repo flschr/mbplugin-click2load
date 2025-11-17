@@ -7,6 +7,19 @@ Versionierung folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.0.2] - 2025-11-17
+
+### Fixed
+
+- **Dokumentation**: Logo-Dateien (`static/img/`) jetzt in allen Installations-Anleitungen dokumentiert
+  - `INSTALL.md` aktualisiert: Dateistruktur zeigt jetzt `static/img/` Ordner mit allen Provider-Logos
+  - `README.md` aktualisiert: Quick Start und Dateistruktur zeigen jetzt den `img/` Ordner
+  - Checkliste in `INSTALL.md` erweitert um Prüfung der Provider-Logos
+  - Behebt Problem, dass Logo-Dateien bei der Installation übersehen werden konnten
+  - Ohne diese Dateien werden Provider-Logos (ARTE, YouTube, Vimeo, etc.) nicht angezeigt
+
+---
+
 ## [2.0.1] - 2025-11-17
 
 ### Fixed
@@ -160,7 +173,9 @@ Hugo Server starten und prüfen ob:
 
 ## Versionshistorie
 
-- **2.0.0** (2025-11-17) - Automatische iframe-Erkennung (AKTUELLE VERSION)
+- **2.0.2** (2025-11-17) - Dokumentations-Fix für Logo-Dateien (AKTUELLE VERSION)
+- **2.0.1** (2025-11-17) - Browser-Spracherkennung Fix
+- **2.0.0** (2025-11-17) - Automatische iframe-Erkennung
 - **1.0.0** (2025-11-17) - Initial Release mit Shortcode (superseded)
 
 ---
