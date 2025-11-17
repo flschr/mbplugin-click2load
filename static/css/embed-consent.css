@@ -39,7 +39,7 @@
     --embed-consent-overlay-text-muted: rgba(60, 60, 60, 0.85);
 }
 
-/* Dark mode support - consolidated to avoid duplication */
+/* Dark mode support - using :root for broader compatibility */
 @media (prefers-color-scheme: dark) {
     :root {
         --embed-consent-bg: rgba(30, 30, 30, 0.95);
@@ -47,28 +47,23 @@
         --embed-consent-text-muted: #a3a3a3;
         --embed-consent-border: rgba(255, 255, 255, 0.1);
         --embed-consent-overlay-bg: rgba(30, 30, 30, 0.95);
-
         --embed-consent-button-bg: #3b82f6;
         --embed-consent-button-text: #ffffff;
         --embed-consent-button-hover-bg: #2563eb;
-
-        /* Overlay text colors for dark mode */
         --embed-consent-overlay-text: rgba(255, 255, 255, 0.95);
         --embed-consent-overlay-text-strong: rgba(255, 255, 255, 1);
         --embed-consent-overlay-text-muted: rgba(255, 255, 255, 0.8);
     }
 }
 
-/* Allow explicit dark mode class override (inherits from media query above) */
+/* Explicit dark mode class/attribute (for theme toggles independent of OS preference)
+   Note: Variables are duplicated from @media query above. This is intentional to support
+   both automatic (OS) and manual (class) dark mode switching without dependencies. */
+.dark:root,
+:root[data-theme="dark"],
 .dark,
 [data-theme="dark"] {
     color-scheme: dark;
-}
-
-/* Force dark mode colors when explicitly set via class/attribute */
-.dark .embed-consent-wrapper,
-[data-theme="dark"] .embed-consent-wrapper {
-    /* Colors are already set via @media query, just ensure they apply */
     --embed-consent-bg: rgba(30, 30, 30, 0.95);
     --embed-consent-text: #e5e5e5;
     --embed-consent-text-muted: #a3a3a3;
