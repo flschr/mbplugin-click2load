@@ -56,7 +56,8 @@
     // This observer ONLY blocks - it doesn't wrap. The main plugin handles wrapping.
     if (typeof MutationObserver !== 'undefined') {
         earlyBlockerObserver = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
+            for (var m = 0; m < mutations.length; m++) {
+                var mutation = mutations[m];
                 // Only check added nodes - more efficient
                 for (var i = 0; i < mutation.addedNodes.length; i++) {
                     var node = mutation.addedNodes[i];
@@ -74,7 +75,7 @@
                         }
                     }
                 }
-            });
+            }
         });
 
         // Start observing - childList only (no attribute watching needed)
@@ -84,17 +85,9 @@
                 subtree: true
             });
         }
-
-        // Process any iframes after DOM is ready
-        document.addEventListener('DOMContentLoaded', function() {
-            var allIframes = document.querySelectorAll('iframe');
-            for (var i = 0; i < allIframes.length; i++) {
-                blockIframe(allIframes[i]);
-            }
-        });
     }
 
-    // Expose cleanup function
+    // Expose cleanup function - called by main plugin when it initializes
     window.__embedConsentCleanupEarlyBlocker = function() {
         if (earlyBlockerObserver) {
             earlyBlockerObserver.disconnect();
