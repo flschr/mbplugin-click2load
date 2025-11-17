@@ -94,6 +94,36 @@
     const SCRIPT_BASE_URL = getScriptBaseUrl();
 
     /**
+     * Read optional asset base URL from data attribute
+     */
+    function getCustomAssetBaseUrl() {
+        try {
+            const root = document.documentElement;
+            if (!root) {
+                return null;
+            }
+
+            const attr = root.getAttribute('data-embed-consent-asset-base');
+            if (!attr) {
+                return null;
+            }
+
+            const baseUrl = new URL(attr, window.location.href);
+            baseUrl.search = '';
+            baseUrl.hash = '';
+            if (!baseUrl.pathname.endsWith('/')) {
+                baseUrl.pathname += '/';
+            }
+            return baseUrl;
+        } catch (error) {
+            console.warn('Failed to parse embed consent asset base attribute:', error);
+            return null;
+        }
+    }
+
+    const CUSTOM_ASSET_BASE_URL = getCustomAssetBaseUrl();
+
+    /**
      * Convert a relative asset path into an absolute URL
      */
     function resolveAssetPath(path) {
@@ -110,7 +140,8 @@
                 return new URL(path, window.location.href).toString();
             }
 
-            return new URL(path, SCRIPT_BASE_URL).toString();
+            const baseUrl = CUSTOM_ASSET_BASE_URL || SCRIPT_BASE_URL;
+            return new URL(path, baseUrl).toString();
         } catch (error) {
             console.warn('Failed to resolve embed consent asset path:', path, error);
             return path;
