@@ -11,7 +11,7 @@
 {{- $config := .Site.Params.embedConsent | default dict -}}
 {{- $enableLocalStorage := $config.enableLocalStorage | default true -}}
 {{- $showAlwaysAllowOption := $config.showAlwaysAllowOption | default true -}}
-{{- $language := $config.language | default "en" -}}
+{{- $language := $config.language -}}
 {{- $privacyPolicyUrl := $config.privacyPolicyUrl | default "" -}}
 
 {{- /* Set data attributes on html element for JavaScript to read */ -}}
@@ -20,7 +20,9 @@
     var root = document.documentElement;
     root.setAttribute('data-embed-consent-storage', '{{ $enableLocalStorage }}');
     root.setAttribute('data-embed-consent-always-allow', '{{ $showAlwaysAllowOption }}');
+    {{- if $language -}}
     root.setAttribute('data-embed-consent-language', '{{ $language }}');
+    {{- end -}}
     {{- if $privacyPolicyUrl -}}
     root.setAttribute('data-embed-consent-privacy-url', '{{ $privacyPolicyUrl }}');
     {{- end -}}
