@@ -58,27 +58,6 @@ The plugin automatically detects and displays logos for these services:
 
 All other iframes are supported but shown with a generic overlay.
 
-## Configuration (Optional)
-
-The plugin works out of the box with sensible defaults and auto-detects the browser language. Configuration in `config.toml` is completely optional:
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `enableLocalStorage` | boolean | `true` | Save user preference in browser |
-| `showAlwaysAllowOption` | boolean | `true` | Show "Always allow" checkbox |
-| `language` | string | auto-detect | Language: `"en"` or `"de"` |
-| `privacyPolicyUrl` | string | `""` | Link to privacy policy |
-
-Example `config.toml` (if you want to customize):
-
-```toml
-[params.embedConsent]
-  enableLocalStorage = true
-  showAlwaysAllowOption = true
-  language = "en"
-  privacyPolicyUrl = "/privacy/"
-```
-
 ## Exclude Specific Iframes
 
 To exclude certain iframes from consent:
