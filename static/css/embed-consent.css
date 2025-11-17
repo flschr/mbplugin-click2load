@@ -239,6 +239,12 @@
     opacity: 0.9;
 }
 
+.embed-consent-icon img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
 /* ========================================
    Text
    ======================================== */
