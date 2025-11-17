@@ -72,7 +72,7 @@
     width: 100%;
     max-width: 100%;
     overflow: hidden;
-    background-color: #000;
+    background-color: transparent;
     border-radius: var(--embed-consent-radius);
 
     /* Aspect ratio using padding-bottom trick for older browsers */
