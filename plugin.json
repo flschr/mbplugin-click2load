@@ -1,7 +1,7 @@
 {
   "name": "mbplugin-click2load",
   "title": "Click-2-Load Privacy Plugin",
-  "description": "Privacy-first plugin that automatically adds consent overlays to all iframes on your website.",
+  "description": "Privacy-first plugin that automatically adds consent overlays to all iframes on your website. SETUP REQUIRED: Add {{ partial \"embed-consent-config.html\" . }} to your theme's head.html - see MICROBLOG.md for details.",
   "author": "René Fischer",
   "version": "2.1.1",
   "fields": [

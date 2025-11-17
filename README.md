@@ -15,20 +15,21 @@ A privacy-first plugin that automatically adds consent overlays to all iframes o
 
 ### For Micro.blog
 
-1. Add to your `head.html`:
+**IMPORTANT:** The settings in `plugin.json` only work if you complete this setup!
+
+1. **Install the plugin** via Micro.blog's plugin interface
+
+2. **Add to your custom theme** (`layouts/partials/head.html` or `layouts/_default/baseof.html`):
 
 ```html
 {{ partial "embed-consent-config.html" . }}
-<link rel="stylesheet" href="{{ "css/embed-consent.css" | relURL }}">
 ```
 
-2. Add to your `footer.html`:
+Without this line, the plugin will use default settings and ignore your configuration!
 
-```html
-<script src="{{ "js/embed-consent.js" | relURL }}"></script>
-```
+**For detailed Micro.blog instructions, see [MICROBLOG.md](MICROBLOG.md)**
 
-That's it! All iframes will now show a consent overlay before loading.
+That's it! The CSS and JavaScript are loaded automatically. Configure the plugin in the Micro.blog plugin settings.
 
 ### For Standard Hugo Sites
 

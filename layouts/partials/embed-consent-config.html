@@ -8,11 +8,32 @@
     {{ partial "embed-consent-config.html" . }}
 */ -}}
 
-{{- $config := .Site.Params.embedConsent | default dict -}}
-{{- $enableLocalStorage := $config.enableLocalStorage | default true -}}
-{{- $showAlwaysAllowOption := $config.showAlwaysAllowOption | default true -}}
-{{- $language := $config.language -}}
-{{- $privacyPolicyUrl := $config.privacyPolicyUrl | default "" -}}
+{{- /* Support both Micro.blog plugin params AND Hugo config params */ -}}
+{{- /* Try multiple sources for configuration values */ -}}
+{{- $enableLocalStorage := true -}}
+{{- $showAlwaysAllowOption := true -}}
+{{- $language := "" -}}
+{{- $privacyPolicyUrl := "" -}}
+
+{{- /* Try .Site.Params.embedConsent (Hugo config.toml/yaml) */ -}}
+{{- if .Site.Params.embedConsent -}}
+  {{- $enableLocalStorage = .Site.Params.embedConsent.enableLocalStorage | default true -}}
+  {{- $showAlwaysAllowOption = .Site.Params.embedConsent.showAlwaysAllowOption | default true -}}
+  {{- $language = .Site.Params.embedConsent.language | default "" -}}
+  {{- $privacyPolicyUrl = .Site.Params.embedConsent.privacyPolicyUrl | default "" -}}
+{{- else if .Site.Params.params.embedConsent -}}
+  {{- /* Try .Site.Params.params.embedConsent (Micro.blog plugin.json) */ -}}
+  {{- $enableLocalStorage = .Site.Params.params.embedConsent.enableLocalStorage | default true -}}
+  {{- $showAlwaysAllowOption = .Site.Params.params.embedConsent.showAlwaysAllowOption | default true -}}
+  {{- $language = .Site.Params.params.embedConsent.language | default "" -}}
+  {{- $privacyPolicyUrl = .Site.Params.params.embedConsent.privacyPolicyUrl | default "" -}}
+{{- else if index .Site.Params "params.embedConsent.enableLocalStorage" -}}
+  {{- /* Try flat parameter names (alternative Micro.blog format) */ -}}
+  {{- $enableLocalStorage = index .Site.Params "params.embedConsent.enableLocalStorage" | default true -}}
+  {{- $showAlwaysAllowOption = index .Site.Params "params.embedConsent.showAlwaysAllowOption" | default true -}}
+  {{- $language = index .Site.Params "params.embedConsent.language" | default "" -}}
+  {{- $privacyPolicyUrl = index .Site.Params "params.embedConsent.privacyPolicyUrl" | default "" -}}
+{{- end -}}
 
 {{- /* Set data attributes on html element for JavaScript to read */ -}}
 <script>
@@ -27,6 +48,16 @@
     {{- if $privacyPolicyUrl -}}
     root.dataset.embedConsentPrivacyUrl = '{{ $privacyPolicyUrl }}';
     {{- end -}}
+
+    // Debug: Log configuration to console (can be disabled in production)
+    if (typeof console !== 'undefined' && console.log) {
+        console.log('Embed Consent Config:', {
+            enableLocalStorage: '{{ $enableLocalStorage }}',
+            showAlwaysAllowOption: '{{ $showAlwaysAllowOption }}',
+            language: '{{ $language }}',
+            privacyPolicyUrl: '{{ $privacyPolicyUrl }}'
+        });
+    }
 })();
 </script>
 
