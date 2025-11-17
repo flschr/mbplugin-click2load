@@ -243,6 +243,10 @@
             return value;
         }
         if (typeof value === 'string') {
+            // Ignore percentage values
+            if (value.includes('%')) {
+                return fallback;
+            }
             const parsed = parseInt(value, 10);
             if (!isNaN(parsed) && parsed > 0) {
                 return parsed;
@@ -288,6 +292,9 @@
         let width = getNumericValue(widthAttr, null);
         let height = getNumericValue(heightAttr, null);
 
+        // Track if we have valid numeric dimensions from attributes
+        const hasValidDimensions = (width !== null && height !== null);
+
         // If we couldn't get numeric values from attributes, try computed dimensions
         if (!width || !height) {
             const computed = iframe.getBoundingClientRect();
@@ -299,13 +306,18 @@
             }
         }
 
-        // Final fallback to 16:9 aspect ratio
-        if (!width) width = 640;
-        if (!height) height = 360;
-
-        const aspectRatio = (height / width) * 100;
-        wrapper.style.setProperty('--aspect-ratio-padding', aspectRatio + '%');
-        wrapper.style.setProperty('--iframe-aspect-ratio', width + ' / ' + height);
+        // Only set aspect-ratio if we have valid numeric dimensions
+        if (hasValidDimensions && width && height) {
+            const aspectRatio = (height / width) * 100;
+            wrapper.style.setProperty('--aspect-ratio-padding', aspectRatio + '%');
+            wrapper.style.setProperty('--iframe-aspect-ratio', width + ' / ' + height);
+            wrapper.dataset.hasAspectRatio = 'true';
+        } else {
+            // Fallback to 16:9 for the overlay display
+            wrapper.style.setProperty('--aspect-ratio-padding', '56.25%');
+            wrapper.style.setProperty('--iframe-aspect-ratio', '16 / 9');
+            wrapper.dataset.hasAspectRatio = 'false';
+        }
 
         // Store original src and remove it
         iframe.dataset.consentSrc = src;
