@@ -32,6 +32,8 @@
             learnMore: 'Learn more',
             providerYouTube: 'YouTube',
             providerVimeo: 'Vimeo',
+            providerArte: 'ARTE',
+            providerKomoot: 'Komoot',
             providerGeneric: 'External Content'
         },
         de: {
@@ -42,6 +44,8 @@
             learnMore: 'Mehr erfahren',
             providerYouTube: 'YouTube',
             providerVimeo: 'Vimeo',
+            providerArte: 'ARTE',
+            providerKomoot: 'Komoot',
             providerGeneric: 'Externer Inhalt'
         }
     };
@@ -64,6 +68,20 @@
             ],
             name: 'Vimeo',
             logo: '/img/Vimeo-Logo.png'
+        },
+        arte: {
+            patterns: [
+                /arte\.tv\/player\//i
+            ],
+            name: 'ARTE',
+            logo: null
+        },
+        komoot: {
+            patterns: [
+                /komoot\./i
+            ],
+            name: 'Komoot',
+            logo: null
         },
         generic: {
             patterns: [],
