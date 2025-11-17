@@ -278,8 +278,6 @@ EmbedConsent.version
 EmbedConsent.cleanup()
 ```
 
-**Hinweis:** Die alte API (`resetEmbedConsent()`, `getEmbedConsentStatus()`) funktioniert noch aus Kompatibilitätsgründen, zeigt aber eine Deprecation-Warnung. Verwende stattdessen die neue `EmbedConsent.*` API.
-
 ## Styling und Theme-Integration
 
 ### Automatische Theme-Anpassung

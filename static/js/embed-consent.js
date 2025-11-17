@@ -669,18 +669,6 @@
         version: '2.1.0'
     };
 
-    // Backwards compatibility - deprecated, use EmbedConsent.reset() instead
-    window.resetEmbedConsent = function() {
-        console.warn('resetEmbedConsent() is deprecated. Use EmbedConsent.reset() instead.');
-        return window.EmbedConsent.reset();
-    };
-
-    // Backwards compatibility - deprecated, use EmbedConsent.getStatus() instead
-    window.getEmbedConsentStatus = function() {
-        console.warn('getEmbedConsentStatus() is deprecated. Use EmbedConsent.getStatus() instead.');
-        return window.EmbedConsent.getStatus();
-    };
-
     /**
      * Initialize plugin
      */

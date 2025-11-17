@@ -63,7 +63,6 @@ Diese Version enthält umfassende Verbesserungen in Performance, Sicherheit, Cod
   - `EmbedConsent.getStatus()` - Status abfragen
   - `EmbedConsent.cleanup()` - Aufräumen
   - `EmbedConsent.version` - Plugin-Version
-  - Backwards compatibility für alte API erhalten (mit Deprecation Warning)
 
 - **✨ Bessere UX**: Alerts durch Console-Logs ersetzt
   - `showNotification()` Funktion mit Icons (ℹ️, ✓, ⚠)
@@ -85,10 +84,9 @@ Diese Version enthält umfassende Verbesserungen in Performance, Sicherheit, Cod
 
 ### Changed
 
-- **📖 API-Änderungen** (Backwards Compatible):
-  - `resetEmbedConsent()` → `EmbedConsent.reset()` (deprecated mit Warning)
-  - `getEmbedConsentStatus()` → `EmbedConsent.getStatus()` (deprecated mit Warning)
-  - Alte API funktioniert weiterhin, zeigt aber Deprecation-Warning
+- **📖 API-Änderungen** (Breaking):
+  - Alte globale Funktionen `resetEmbedConsent()` und `getEmbedConsentStatus()` entfernt
+  - Neue API: `EmbedConsent.reset()` und `EmbedConsent.getStatus()`
 
 ### Internal
 
@@ -100,26 +98,32 @@ Diese Version enthält umfassende Verbesserungen in Performance, Sicherheit, Cod
 
 ### Migration Guide
 
-Wenn du die alte API verwendest, solltest du aktualisieren:
+**Breaking Changes:** Die alte globale API wurde entfernt.
+
+Falls du die alte API verwendet hast, musst du aktualisieren:
 
 ```javascript
-// Alt (funktioniert weiter, aber deprecated)
-resetEmbedConsent();
-getEmbedConsentStatus();
+// Alt (funktioniert NICHT mehr)
+resetEmbedConsent();           // ❌ Entfernt
+getEmbedConsentStatus();       // ❌ Entfernt
 
-// Neu (empfohlen)
-EmbedConsent.reset();
-EmbedConsent.getStatus();
+// Neu (erforderlich)
+EmbedConsent.reset();          // ✅ Verwenden
+EmbedConsent.getStatus();      // ✅ Verwenden
 ```
 
-Cleanup bei SPA-Navigation:
+**Neue Features:**
 
+Cleanup bei SPA-Navigation:
 ```javascript
-// Vorher: Kein Cleanup möglich
-// Jetzt: Observers aufräumen
 window.addEventListener('beforeunload', () => {
     EmbedConsent.cleanup();
 });
+```
+
+Version abfragen:
+```javascript
+console.log('Plugin version:', EmbedConsent.version);
 ```
 
 ---
