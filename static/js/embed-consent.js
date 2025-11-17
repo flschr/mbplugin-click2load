@@ -55,12 +55,12 @@
     };
 
     const LOGOS = {
-        arte: '/img/ARTE-Logo.png',
-        youtube: '/img/YouTube-Logo.png',
-        vimeo: '/img/Vimeo-Logo.png',
-        komoot: '/img/Komoot-Logo.png',
-        googlemaps: '/img/Google_Maps-Logo.png',
-        openstreetmap: '/img/OSM-Logo.png'
+        arte: 'img/ARTE-Logo.png',
+        youtube: 'img/YouTube-Logo.png',
+        vimeo: 'img/Vimeo-Logo.png',
+        komoot: 'img/Komoot-Logo.png',
+        googlemaps: 'img/Google_Maps-Logo.png',
+        openstreetmap: 'img/OSM-Logo.png'
     };
 
     // Provider detection patterns
