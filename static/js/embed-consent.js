@@ -231,6 +231,22 @@
     }
 
     /**
+     * Get numeric value from attribute or computed style
+     */
+    function getNumericValue(value, fallback) {
+        if (typeof value === 'number') {
+            return value;
+        }
+        if (typeof value === 'string') {
+            const parsed = parseInt(value, 10);
+            if (!isNaN(parsed) && parsed > 0) {
+                return parsed;
+            }
+        }
+        return fallback;
+    }
+
+    /**
      * Wrap an iframe with consent overlay
      */
     function wrapIframe(iframe, config) {
@@ -260,11 +276,36 @@
         wrapper.dataset.provider = provider;
 
         // Get dimensions for aspect ratio
-        const width = iframe.width || iframe.offsetWidth || 640;
-        const height = iframe.height || iframe.offsetHeight || 360;
+        // Extract numeric values from width and height attributes
+        const widthAttr = iframe.getAttribute('width');
+        const heightAttr = iframe.getAttribute('height');
+
+        let width = getNumericValue(widthAttr, null);
+        let height = getNumericValue(heightAttr, null);
+
+        // If we couldn't get numeric values from attributes, try computed dimensions
+        if (!width || !height) {
+            const computed = iframe.getBoundingClientRect();
+            if (!width && computed.width > 0) {
+                width = computed.width;
+            }
+            if (!height && computed.height > 0) {
+                height = computed.height;
+            }
+        }
+
+        // Final fallback to 16:9 aspect ratio
+        if (!width) width = 640;
+        if (!height) height = 360;
+
         const aspectRatio = (height / width) * 100;
         wrapper.style.setProperty('--aspect-ratio-padding', aspectRatio + '%');
         wrapper.style.setProperty('--iframe-aspect-ratio', width + ' / ' + height);
+
+        // Store explicit height if specified
+        if (heightAttr) {
+            wrapper.style.setProperty('--iframe-height', heightAttr + (heightAttr.match(/^\d+$/) ? 'px' : ''));
+        }
 
         // Store original src and remove it
         iframe.dataset.consentSrc = src;

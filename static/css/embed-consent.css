@@ -128,11 +128,13 @@
 .embed-consent-wrapper.embed-consent-active .embed-consent-iframe {
     position: relative;
     width: 100%;
-    height: auto;
     opacity: 1;
     pointer-events: auto;
     transition: opacity 0.3s ease-in-out;
+
+    /* Use aspect-ratio by default, explicit height will override if set */
     aspect-ratio: var(--iframe-aspect-ratio, 16 / 9);
+    height: var(--iframe-height, auto);
 }
 
 /* ========================================
