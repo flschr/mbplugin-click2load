@@ -89,6 +89,18 @@
     }
 }
 
+/* Active state: Allow wrapper to adapt to actual iframe size */
+.embed-consent-wrapper.embed-consent-active {
+    padding-bottom: 0;
+    height: auto;
+}
+
+@supports (aspect-ratio: 16 / 9) {
+    .embed-consent-wrapper.embed-consent-active {
+        aspect-ratio: unset;
+    }
+}
+
 /* ========================================
    Iframe Styling
    ======================================== */
@@ -114,9 +126,13 @@
 
 /* Show iframe after consent */
 .embed-consent-wrapper.embed-consent-active .embed-consent-iframe {
+    position: relative;
+    width: 100%;
+    height: auto;
     opacity: 1;
     pointer-events: auto;
     transition: opacity 0.3s ease-in-out;
+    aspect-ratio: var(--iframe-aspect-ratio, 16 / 9);
 }
 
 /* ========================================
