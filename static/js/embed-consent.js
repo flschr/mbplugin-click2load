@@ -26,22 +26,22 @@
     const TRANSLATIONS = {
         en: {
             consentText: 'This embedded content is provided by an external service. By loading this content, data will be transmitted to third parties.',
+            consentTextWithProvider: 'This embedded content is provided by {provider}. By loading this content, data will be transmitted to {provider}.',
             buttonLabel: 'Load content',
             alwaysAllowLabel: 'Always allow external media on this site',
             learnMore: 'Learn more',
             providerYouTube: 'YouTube',
             providerVimeo: 'Vimeo',
-            providerArte: 'ARTE',
             providerGeneric: 'External Content'
         },
         de: {
             consentText: 'Dieses eingebettete Medium wird von einem externen Anbieter bereitgestellt. Durch das Laden dieses Inhalts werden Daten an Dritte übertragen.',
+            consentTextWithProvider: 'Dieses eingebettete Medium wird von {provider} bereitgestellt. Durch das Laden dieses Inhalts werden Daten an {provider} übertragen.',
             buttonLabel: 'Inhalt laden',
             alwaysAllowLabel: 'Externe Medien auf dieser Website immer erlauben',
             learnMore: 'Mehr erfahren',
             providerYouTube: 'YouTube',
             providerVimeo: 'Vimeo',
-            providerArte: 'ARTE',
             providerGeneric: 'Externer Inhalt'
         }
     };
@@ -64,13 +64,6 @@
             ],
             name: 'Vimeo',
             logo: '/img/Vimeo-Logo.png'
-        },
-        arte: {
-            patterns: [
-                /arte\.tv\/player\//i
-            ],
-            name: 'ARTE',
-            logo: '/img/Arte-Logo.png'
         },
         generic: {
             patterns: [],
@@ -193,6 +186,12 @@
         const providerName = getProviderName(provider, config.language);
         const providerLogo = PROVIDERS[provider]?.logo;
 
+        // Use provider-specific text if we know the provider, otherwise use generic text
+        let consentText = translations.consentText;
+        if (provider !== 'generic' && translations.consentTextWithProvider) {
+            consentText = translations.consentTextWithProvider.replace(/{provider}/g, providerName);
+        }
+
         let privacyLink = '';
         if (config.privacyPolicyUrl) {
             privacyLink = `<br><a href="${config.privacyPolicyUrl}" class="embed-consent-privacy-link">${translations.learnMore}</a>`;
@@ -220,8 +219,7 @@
                         ${logoHtml}
                     </div>
                     <p class="embed-consent-text">
-                        <strong>${providerName}</strong><br>
-                        ${translations.consentText}
+                        ${consentText}
                         ${privacyLink}
                     </p>
                     <div class="embed-consent-actions">
