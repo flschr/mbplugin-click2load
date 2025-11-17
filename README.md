@@ -1,264 +1,268 @@
 # Embed Consent Plugin for Hugo / Micro.blog
 
-A complete, privacy-focused embeddable content plugin for Hugo and Micro.blog that implements a consent-based loading mechanism for external media (YouTube, Vimeo, ARTE, and generic embeds).
+**Ein Privacy-First Plugin, das automatisch ALLE iframes auf deiner Website findet und mit einem Consent-Overlay versieht.**
+
+Einmal installiert, keine manuelle Anpassung von Posts nötig!
 
 ## Features
 
-- **Privacy-First**: External media doesn't load until user consent is given
-- **LocalStorage Support**: Remember user preferences across visits
-- **Internationalization**: Built-in German and English support
-- **Customizable**: Override all text labels and styling
-- **Responsive**: Works perfectly on all screen sizes
-- **Accessible**: Keyboard navigation and screen-reader friendly
-- **Theme-Aware**: Respects your site's border-radius and color scheme
-- **No Dependencies**: Pure vanilla JavaScript and CSS
+✅ **Automatische Erkennung**: Findet alle iframes auf deiner Website
+✅ **Null manuelle Arbeit**: Funktioniert mit bestehenden Posts ohne Änderungen
+✅ **Provider-Erkennung**: Erkennt automatisch YouTube, Vimeo, ARTE und andere
+✅ **Privacy-First**: Keine externen Requests bis zur Einwilligung
+✅ **LocalStorage Support**: Merkt sich User-Präferenzen
+✅ **Mehrsprachig**: Deutsch und Englisch eingebaut
+✅ **Theme-bewusst**: Passt sich an dein Design an
+✅ **Keine Dependencies**: Pure Vanilla JavaScript und CSS
+
+## Wie funktioniert es?
+
+1. **Du installierst das Plugin** → CSS + JS einbinden
+2. **Du konfigurierst die Sprache** → `config.toml` anpassen
+3. **Fertig!** → Alle iframes werden automatisch geschützt
+
+**Das wars!** Keine Änderungen an bestehenden Posts nötig.
 
 ## Quick Start
 
-### 1. Installation
+### Schritt 1: Dateien kopieren
 
-#### For Hugo Sites
-
-Clone or download this plugin into your Hugo site's directory:
+Kopiere die Plugin-Dateien in dein Hugo-Projekt:
 
 ```bash
-# Option 1: As a Hugo module (recommended)
-# Add to your config.toml:
-# [module]
-#   [[module.imports]]
-#     path = "github.com/yourusername/mbplugin-click2load"
-
-# Option 2: Manual installation
-# Copy the files directly into your Hugo site:
-cp -r layouts/ /path/to/your/hugo/site/
-cp -r static/ /path/to/your/hugo/site/
+# Kopiere die Dateien
+cp -r layouts/ /pfad/zu/deiner/hugo/site/
+cp -r static/ /pfad/zu/deiner/hugo/site/
 ```
 
-#### For Micro.blog
+Deine Struktur sieht dann so aus:
 
-Upload the plugin files to your Micro.blog site through the plugin manager, or copy them into your site's custom theme directory.
+```
+deine-hugo-site/
+├── layouts/
+│   └── partials/
+│       └── embed-consent-config.html   # ← Neu
+├── static/
+│   ├── css/
+│   │   └── embed-consent.css           # ← Neu
+│   └── js/
+│       └── embed-consent.js            # ← Neu
+```
 
-### 2. Include Assets in Your Theme
+### Schritt 2: Assets einbinden
 
-Add the CSS and JavaScript to your `layouts/_default/baseof.html` (or your main layout template):
+Bearbeite dein `layouts/_default/baseof.html`:
 
 ```html
 <!DOCTYPE html>
 <html lang="{{ .Site.Language.Lang }}">
 <head>
-    <!-- Your existing head content -->
+    <!-- Dein bestehender head-Content -->
+
+    <!-- Embed Consent Config -->
+    {{ partial "embed-consent-config.html" . }}
 
     <!-- Embed Consent CSS -->
     <link rel="stylesheet" href="{{ "css/embed-consent.css" | relURL }}">
 </head>
 <body>
-    <!-- Your content -->
+    {{ block "main" . }}{{ end }}
 
-    <!-- Your existing scripts -->
+    <!-- Deine bestehenden Scripts -->
 
-    <!-- Embed Consent JS (before closing body tag) -->
+    <!-- Embed Consent JS (vor </body>) -->
     <script src="{{ "js/embed-consent.js" | relURL }}"></script>
 </body>
 </html>
 ```
 
-### 3. Configure the Plugin
+### Schritt 3: Konfiguration
 
-Add configuration to your `config.toml`:
+Füge in deine `config.toml` ein:
 
 ```toml
 [params.embedConsent]
   enableLocalStorage = true
   showAlwaysAllowOption = true
-  language = "en"  # or "de" for German
-  privacyPolicyUrl = "/privacy/"
+  language = "de"  # oder "en"
+  privacyPolicyUrl = "/datenschutz/"
 ```
 
-Or in `config.yaml`:
+Oder in `config.yaml`:
 
 ```yaml
 params:
   embedConsent:
     enableLocalStorage: true
     showAlwaysAllowOption: true
-    language: en  # or "de" for German
-    privacyPolicyUrl: /privacy/
+    language: de  # oder "en"
+    privacyPolicyUrl: /datenschutz/
 ```
 
-### 4. Use the Shortcode
+### Schritt 4: Testen!
 
-In your content files (`.md`), use the `embed` shortcode:
+1. Starte deinen Hugo Server:
+   ```bash
+   hugo server -D
+   ```
 
+2. Besuche eine Seite mit einem iframe (YouTube, Vimeo, etc.)
+
+3. Du solltest jetzt sehen:
+   - Ein Consent-Overlay über dem iframe
+   - Einen "Inhalt laden" Button
+   - Optional: "Immer erlauben" Checkbox
+
+4. Klicke den Button → Video lädt!
+
+## Wie es funktioniert (Technisch)
+
+### Automatische iframe-Erkennung
+
+Das JavaScript:
+1. **Findet** beim Seitenaufbau alle `<iframe>` Elemente
+2. **Erkennt** automatisch den Provider (YouTube, Vimeo, ARTE, etc.)
+3. **Ersetzt** das iframe durch einen Wrapper mit Consent-Overlay
+4. **Lädt** das iframe erst nach Klick
+
+### Unterstützte Provider
+
+- **YouTube**: `youtube.com/embed/*`, `youtube-nocookie.com/embed/*`
+- **Vimeo**: `player.vimeo.com/video/*`
+- **ARTE**: `arte.tv/player/*`
+- **Alle anderen**: Generisches Overlay für jeden iframe
+
+### Beispiel: Vorher / Nachher
+
+**Vorher (in deinem Markdown):**
 ```markdown
-## YouTube Example
+---
+title: "Mein Blogpost"
+---
 
-{{< embed provider="youtube" id="dQw4w9WgXcQ" title="Rick Astley - Never Gonna Give You Up" >}}
+Schau dir dieses Video an:
 
-## Vimeo Example
-
-{{< embed provider="vimeo" id="76979871" title="The New Vimeo Player" >}}
-
-## ARTE Example
-
-{{< embed provider="arte" url="https://www.arte.tv/player/v5/index.php?json_url=..." title="ARTE Documentary" >}}
-
-## Generic Embed with Thumbnail
-
-{{< embed provider="generic" url="https://example.com/embed/video" title="Custom Video" thumbnail="/images/video-preview.jpg" >}}
+<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" width="560" height="315"></iframe>
 ```
 
-## Configuration Options
-
-### Site-Wide Settings (`config.toml`)
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `enableLocalStorage` | boolean | `true` | Enable localStorage to remember user preferences |
-| `showAlwaysAllowOption` | boolean | `true` | Show "Always allow" checkbox in consent overlay |
-| `language` | string | `"en"` | Default language: `"en"` or `"de"` |
-| `privacyPolicyUrl` | string | `""` | Optional link to your privacy policy page |
-
-### Shortcode Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `provider` | string | No | One of: `youtube`, `vimeo`, `arte`, `generic` |
-| `id` | string | Conditional* | Video ID for YouTube or Vimeo |
-| `url` | string | Conditional* | Full embed URL for ARTE or generic embeds |
-| `title` | string | No | Title for the iframe (accessibility) |
-| `ratio` | string | No | Aspect ratio: `16/9` (default), `4/3`, `1/1`, `21/9` |
-| `thumbnail` | string | No | Path to local preview image |
-| `consent_text` | string | No | Override default consent text |
-| `button_label` | string | No | Override button text |
-| `always_allow_label` | string | No | Override checkbox text |
-
-\* Either `id` (for YouTube/Vimeo) or `url` (for ARTE/generic) is required
-
-## Usage Examples
-
-### YouTube Video
-
-```markdown
-{{< embed provider="youtube" id="dQw4w9WgXcQ" title="Rick Astley - Never Gonna Give You Up" >}}
+**Nachher (automatisch im Browser):**
+```html
+<div class="embed-consent-wrapper">
+    <div class="embed-consent-overlay">
+        <!-- Consent UI -->
+        <button>Inhalt laden</button>
+    </div>
+    <iframe data-consent-src="https://www.youtube.com/embed/dQw4w9WgXcQ"></iframe>
+</div>
 ```
 
-### YouTube with Custom Aspect Ratio
+**Du musst NICHTS am Markdown ändern!** Das Plugin macht alles automatisch.
 
-```markdown
-{{< embed provider="youtube" id="dQw4w9WgXcQ" ratio="21/9" >}}
+## Konfigurationsoptionen
+
+### Site-weite Einstellungen (`config.toml`)
+
+| Parameter | Typ | Default | Beschreibung |
+|-----------|-----|---------|--------------|
+| `enableLocalStorage` | boolean | `true` | Speichert User-Präferenz im Browser |
+| `showAlwaysAllowOption` | boolean | `true` | Zeigt "Immer erlauben" Checkbox |
+| `language` | string | `"en"` | Sprache: `"de"` oder `"en"` |
+| `privacyPolicyUrl` | string | `""` | Link zur Datenschutzerklärung |
+
+### Erweiterte Optionen
+
+#### Bestimmte iframes ausschließen
+
+Falls du bestimmte iframes NICHT mit Consent versehen willst:
+
+```html
+<!-- Dieser iframe wird NICHT geschützt -->
+<iframe src="..." class="no-consent"></iframe>
+
+<!-- Oder mit data-Attribut -->
+<iframe src="..." data-no-consent></iframe>
 ```
 
-### Vimeo Video
+Das Plugin überspringt automatisch iframes mit:
+- CSS-Klasse `.no-consent`
+- Attribut `data-no-consent`
 
-```markdown
-{{< embed provider="vimeo" id="76979871" title="Beautiful Video" >}}
-```
+## Mehrsprachigkeit
 
-### ARTE Video
-
-```markdown
-{{< embed provider="arte" url="https://www.arte.tv/player/v5/index.php?json_url=https%3A%2F%2Fapi.arte.tv%2Fapi%2Fplayer%2Fv2%2Fconfig%2Fde%2F123456" title="ARTE Documentary" >}}
-```
-
-### Custom Embed with Thumbnail
-
-```markdown
-{{< embed
-    provider="generic"
-    url="https://example.com/embed/video"
-    title="Custom Video"
-    thumbnail="/images/video-thumb.jpg"
-    ratio="4/3"
->}}
-```
-
-### Custom Text Override (Multilingual)
-
-```markdown
-{{< embed
-    provider="youtube"
-    id="dQw4w9WgXcQ"
-    consent_text="This video is hosted by YouTube. Click to load."
-    button_label="Watch Video"
-    always_allow_label="Remember my choice"
->}}
-```
-
-## Internationalization
-
-The plugin includes built-in translations for German and English. Set your preferred language in `config.toml`:
+### Deutsch
 
 ```toml
 [params.embedConsent]
-  language = "de"  # German
+  language = "de"
 ```
 
-### Default Translations
-
-**English (`en`)**:
-- Consent text: "This embedded content is provided by an external service. By loading this content, data will be transmitted to third parties."
-- Button: "Load content"
-- Always allow: "Always allow external media on this site"
-
-**German (`de`)**:
-- Consent text: "Dieses eingebettete Medium wird von einem externen Anbieter bereitgestellt. Durch das Laden dieses Inhalts werden Daten an Dritte übertragen."
+**Texte:**
+- "Dieses eingebettete Medium wird von einem externen Anbieter bereitgestellt..."
 - Button: "Inhalt laden"
-- Always allow: "Externe Medien auf dieser Website immer erlauben"
+- Checkbox: "Externe Medien auf dieser Website immer erlauben"
 
-### Adding Custom Languages
+### Englisch
 
-To add more languages, modify the `$translations` dictionary in `layouts/shortcodes/embed.html`.
+```toml
+[params.embedConsent]
+  language = "en"
+```
 
-## LocalStorage Behavior
+**Texte:**
+- "This embedded content is provided by an external service..."
+- Button: "Load content"
+- Checkbox: "Always allow external media on this site"
 
-### How It Works
+## LocalStorage Verhalten
 
-1. **First Visit**: User sees consent overlay for each embed
-2. **User Clicks "Load content"**:
-   - Embed loads immediately
-   - If "Always allow" checkbox is checked, preference is saved to localStorage
-3. **Subsequent Visits**:
-   - If preference is saved, embeds load automatically without overlay
-   - No consent overlay is shown
+### Wie funktioniert die Speicherung?
 
-### Managing Consent
+1. **Erster Besuch**: User sieht Consent-Overlay bei jedem iframe
+2. **User klickt "Inhalt laden"**:
+   - iframe lädt sofort
+   - Wenn Checkbox "Immer erlauben" aktiviert: Präferenz wird gespeichert
+3. **Nächste Besuche**:
+   - Wenn Präferenz gespeichert: Alle iframes laden automatisch
+   - Kein Overlay wird angezeigt
 
-Users can reset their consent preference from the browser console:
+### Consent widerrufen
 
+User können ihre Einwilligung zurücksetzen:
+
+**Per Browser-Konsole:**
 ```javascript
-// Check current consent status
-getEmbedConsentStatus()
-
-// Reset consent (will require consent again on next page load)
 resetEmbedConsent()
 ```
 
-### Revoking Consent
-
-To give users a way to revoke consent, add a button to your privacy policy page:
-
+**Per Button auf Datenschutz-Seite:**
 ```html
 <button onclick="resetEmbedConsent()">
-  Reset Embed Preferences
+  Einwilligung zurücksetzen
 </button>
 ```
 
-## Styling and Theming
+**Status prüfen:**
+```javascript
+getEmbedConsentStatus()
+// → { available: true, consent: true, message: "..." }
+```
 
-### Theme Integration
+## Styling und Theme-Integration
 
-The plugin respects your theme's design tokens:
+### Automatische Theme-Anpassung
+
+Das Plugin respektiert dein Theme:
 
 ```css
 :root {
-  /* If your theme defines this, the plugin will use it */
+  /* Falls dein Theme das definiert, nutzt das Plugin es */
   --radius-default: 1rem;
 }
 ```
 
-### Customizing Colors
+### Farben anpassen
 
-Override CSS custom properties in your theme:
+Überschreibe CSS-Variablen in deinem Theme:
 
 ```css
 :root {
@@ -270,110 +274,161 @@ Override CSS custom properties in your theme:
 
 ### Dark Mode
 
-The plugin automatically adapts to dark mode via:
-- `prefers-color-scheme: dark` media query
-- `.dark` class on any parent element
-- `[data-theme="dark"]` attribute
+Das Plugin unterstützt automatisch:
+- `prefers-color-scheme: dark` Media Query
+- `.dark` Klasse auf Parent-Element
+- `[data-theme="dark"]` Attribut
 
-## Browser Support
+## Privacy & DSGVO
 
-- **Modern Browsers**: Full support (Chrome, Firefox, Safari, Edge)
-- **Older Browsers**: Graceful degradation with fallback aspect-ratio technique
-- **No JavaScript**: Displays fallback message with direct link to content
+### Privacy-konform
 
-## Privacy Considerations
+✅ **Keine Cookies**: Nutzt nur localStorage (User-kontrolliert)
+✅ **Keine externen Requests**: Bis zur expliziten Einwilligung
+✅ **Kein Tracking**: Plugin selbst trackt nichts
+✅ **DSGVO-konform**: Explizite Nutzeraktion erforderlich
+✅ **Konfigurierbar**: LocalStorage kann komplett deaktiviert werden
 
-This plugin is designed with privacy in mind:
+### Strict Privacy Mode
 
-1. **No Cookies**: Uses localStorage only (user-controlled)
-2. **No External Requests**: Until user explicitly consents
-3. **No Tracking**: Plugin itself doesn't track anything
-4. **GDPR Compliant**: Requires explicit user action before loading external content
-5. **Configurable**: Can disable localStorage entirely if needed
-
-### Disabling LocalStorage
-
-If you want to comply with strict privacy regulations that prohibit any client-side storage:
+Für maximale Privacy (kein Client-side Storage):
 
 ```toml
 [params.embedConsent]
   enableLocalStorage = false
   showAlwaysAllowOption = false
+  language = "de"
 ```
 
-This will require consent for every embed on every page load.
+Dann ist bei jedem Seitenaufbau eine neue Einwilligung nötig.
+
+## Browser Support
+
+- **Moderne Browser**: Volle Unterstützung (Chrome, Firefox, Safari, Edge)
+- **Ältere Browser**: Graceful Degradation
+- **Kein JavaScript**: iframes laden nicht (Privacy-konform)
 
 ## Troubleshooting
 
-### Embeds Not Loading
+### iframes laden nicht
 
-1. **Check JavaScript**: Ensure `embed-consent.js` is loaded correctly
-2. **Check Console**: Open browser DevTools and look for errors
-3. **Check Parameters**: Ensure you provided either `id` or `url`
+1. **JavaScript aktiv?**: Prüfe Browser-Konsole (F12)
+2. **CSS geladen?**: Network-Tab → `embed-consent.css` sollte 200 OK sein
+3. **Config korrekt?**: Prüfe `config.toml` Syntax
 
-### Styles Not Applied
+### Overlay wird nicht angezeigt
 
-1. **Check CSS**: Ensure `embed-consent.css` is loaded in `<head>`
-2. **Check Specificity**: Your theme's CSS might be overriding styles
-3. **Clear Cache**: Hard refresh the page (Ctrl+Shift+R / Cmd+Shift+R)
+1. **Partial eingebunden?**: `{{ partial "embed-consent-config.html" . }}` im `<head>`
+2. **JS geladen?**: Network-Tab → `embed-consent.js` sollte 200 OK sein
+3. **iframe hat src?**: Nur iframes mit `src` werden geschützt
 
-### LocalStorage Not Working
+### LocalStorage funktioniert nicht
 
-1. **Browser Support**: Check if localStorage is available
-2. **Privacy Mode**: localStorage is disabled in private/incognito mode
-3. **Browser Settings**: User might have disabled storage in browser settings
+1. **Privacy Mode?**: In Incognito/Private Browsing ist localStorage deaktiviert
+2. **Browser-Einstellung?**: User könnte Storage deaktiviert haben
+3. **Test**: Browser-Konsole → `getEmbedConsentStatus()`
 
-Run this in console to test:
+### Bestimmte iframes sollen nicht geschützt werden
 
-```javascript
-getEmbedConsentStatus()
+Füge CSS-Klasse oder Attribut hinzu:
+
+```html
+<iframe src="..." class="no-consent"></iframe>
 ```
 
-## Development
+Oder:
 
-### File Structure
+```html
+<iframe src="..." data-no-consent></iframe>
+```
+
+## Entwicklung & Contribution
+
+### Dateistruktur
 
 ```
 mbplugin-click2load/
 ├── layouts/
-│   └── shortcodes/
-│       └── embed.html          # Hugo shortcode template
+│   └── partials/
+│       └── embed-consent-config.html   # Config injection
 ├── static/
 │   ├── css/
-│   │   └── embed-consent.css   # Plugin styles
+│   │   └── embed-consent.css          # Styles
 │   └── js/
-│       └── embed-consent.js    # Plugin JavaScript
-├── LICENSE
+│       └── embed-consent.js           # Auto-detection logic
+├── CHANGELOG.md
+├── INSTALL.md
 └── README.md
 ```
 
-### Contributing
+### Neue Provider hinzufügen
 
-Contributions are welcome! Please:
+Bearbeite `static/js/embed-consent.js`:
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+```javascript
+const PROVIDERS = {
+    // ...existing providers...
+    twitch: {
+        patterns: [
+            /twitch\.tv\/embed\//i
+        ],
+        name: 'Twitch',
+        icon: '<svg>...</svg>'
+    }
+};
+```
+
+### Weitere Sprachen hinzufügen
+
+Bearbeite `static/js/embed-consent.js`:
+
+```javascript
+const TRANSLATIONS = {
+    // ...existing languages...
+    fr: {
+        consentText: 'Ce contenu intégré est fourni par un service externe...',
+        buttonLabel: 'Charger le contenu',
+        // ...
+    }
+};
+```
+
+## Migration von anderen Plugins
+
+### Von Cookie Consent Plugins
+
+1. Altes Plugin deinstallieren
+2. Dieses Plugin installieren
+3. Fertig! Keine Content-Änderungen nötig
+
+### Von Shortcode-basierten Lösungen
+
+1. Plugin installieren
+2. Alte Shortcodes können bleiben (funktionieren weiter als normale iframes)
+3. Plugin schützt automatisch alle iframes
+
+## Changelog
+
+Siehe [CHANGELOG.md](CHANGELOG.md) für Version History.
 
 ## License
 
-See the [LICENSE](LICENSE) file for details.
+Siehe [LICENSE](LICENSE) Datei.
 
 ## Support
 
-For issues, questions, or suggestions:
+Bei Fragen oder Problemen:
 
-1. Check the [Troubleshooting](#troubleshooting) section
-2. Review existing issues on GitHub
-3. Open a new issue with detailed information
+1. [Troubleshooting](#troubleshooting) lesen
+2. Issue auf GitHub öffnen
+3. Pull Request mit Verbesserungen
 
 ## Credits
 
-Developed for the Hugo and Micro.blog community with privacy and user experience as top priorities.
+Entwickelt für die Hugo und Micro.blog Community mit Fokus auf Privacy und User Experience.
 
 ---
 
-**Version**: 1.0.0
-**Last Updated**: 2025-11-17
+**Version**: 2.0.0
+**Letztes Update**: 2025-11-17
+**Modus**: Automatische iframe-Erkennung
