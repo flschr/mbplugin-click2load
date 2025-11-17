@@ -287,7 +287,11 @@
             }
         }
 
-        const src = iframe.src || iframe.dataset.src;
+        // Check for src in multiple places:
+        // 1. iframe.src - normal src attribute
+        // 2. iframe.dataset.src - data-src attribute (lazy loading)
+        // 3. iframe.dataset.consentSrc - already blocked by early script
+        const src = iframe.src || iframe.dataset.src || iframe.dataset.consentSrc;
         if (!src) {
             return; // No src to load
         }
@@ -335,9 +339,13 @@
             wrapper.dataset.hasAspectRatio = 'false';
         }
 
-        // Store original src and remove it
-        iframe.dataset.consentSrc = src;
-        iframe.removeAttribute('src');
+        // Store original src and remove it (if not already done by early blocker script)
+        if (!iframe.dataset.consentSrc) {
+            iframe.dataset.consentSrc = src;
+        }
+        if (iframe.hasAttribute('src')) {
+            iframe.removeAttribute('src');
+        }
 
         // Add iframe class for styling
         iframe.classList.add('embed-consent-iframe');
