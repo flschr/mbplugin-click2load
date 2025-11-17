@@ -55,9 +55,9 @@
     };
 
     const LOGOS = {
-        arte: 'static/img/ARTE-Logo.png',
-        komoot: 'static/img/Komoot-Logo.png',
-        openstreetmap: 'static/img/OSM-Logo.png'
+        arte: '/img/ARTE-Logo.png',
+        komoot: '/img/Komoot-Logo.png',
+        openstreetmap: '/img/OSM-Logo.png'
     };
 
     // Provider detection patterns
@@ -69,7 +69,9 @@
                 /youtu\.be\//i
             ],
             name: 'YouTube',
-            logo: '/img/YouTube-Logo.png'
+            logo: '/img/YouTube-Logo.png',
+            logoWidth: 90,
+            logoHeight: 36
         },
         vimeo: {
             patterns: [
@@ -103,7 +105,9 @@
                 /googleusercontent\.com\/maps/i
             ],
             name: 'Google Maps',
-            logo: '/img/Google_Maps-Logo.png'
+            logo: '/img/Google_Maps-Logo.png',
+            logoWidth: 90,
+            logoHeight: 36
         },
         openstreetmap: {
             patterns: [
@@ -274,7 +278,9 @@
 
         let logoHtml = '';
         if (providerLogo) {
-            logoHtml = `<img src="${providerLogo}" alt="${providerName} Logo" width="120" height="48">`;
+            const logoWidth = PROVIDERS[provider]?.logoWidth || 120;
+            const logoHeight = PROVIDERS[provider]?.logoHeight || 48;
+            logoHtml = `<img src="${providerLogo}" alt="${providerName} Logo" width="${logoWidth}" height="${logoHeight}">`;
         }
 
         return `
