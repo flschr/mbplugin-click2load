@@ -227,8 +227,9 @@
     position: relative;
     z-index: 20;
     text-align: center;
-    max-width: 700px;
     width: 100%;
+    max-width: min(80%, 1100px);
+    margin: 0 auto;
     background-color: transparent;
     padding: 2rem 1.5rem;
 }
