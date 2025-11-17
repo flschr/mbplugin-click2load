@@ -26,3 +26,96 @@
     {{- end -}}
 })();
 </script>
+
+{{- /*
+    CRITICAL: Prevent iframes from loading BEFORE consent
+    This script runs synchronously in <head> to intercept iframes
+    BEFORE the browser starts loading their src attributes
+*/ -}}
+<script>
+(function() {
+    'use strict';
+
+    // Function to block iframe from loading
+    function blockIframe(iframe) {
+        // Skip if already processed
+        if (iframe.hasAttribute('data-consent-processed')) {
+            return;
+        }
+
+        // Skip if marked as no-consent
+        if (iframe.matches('.no-consent, [data-no-consent]')) {
+            return;
+        }
+
+        var src = iframe.getAttribute('src');
+        if (src) {
+            // Move src to data-consent-src to prevent loading
+            iframe.setAttribute('data-consent-src', src);
+            iframe.removeAttribute('src');
+            iframe.setAttribute('data-consent-processed', 'true');
+        }
+    }
+
+    // Block any existing iframes (shouldn't be any in HEAD, but just in case)
+    var existingIframes = document.querySelectorAll('iframe');
+    for (var i = 0; i < existingIframes.length; i++) {
+        blockIframe(existingIframes[i]);
+    }
+
+    // Set up MutationObserver to catch iframes as they're added to the DOM
+    // This runs BEFORE the browser loads the iframe src
+    if (typeof MutationObserver !== 'undefined') {
+        var observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                // Check added nodes
+                for (var i = 0; i < mutation.addedNodes.length; i++) {
+                    var node = mutation.addedNodes[i];
+                    if (node.nodeType === 1) { // Element node
+                        // Check if the node itself is an iframe
+                        if (node.tagName === 'IFRAME') {
+                            blockIframe(node);
+                        }
+                        // Check if the node contains iframes
+                        if (node.querySelectorAll) {
+                            var iframes = node.querySelectorAll('iframe');
+                            for (var j = 0; j < iframes.length; j++) {
+                                blockIframe(iframes[j]);
+                            }
+                        }
+                    }
+                }
+
+                // Also check for attribute changes on existing iframes
+                if (mutation.type === 'attributes' &&
+                    mutation.target.tagName === 'IFRAME' &&
+                    mutation.attributeName === 'src') {
+                    blockIframe(mutation.target);
+                }
+            });
+        });
+
+        // Start observing as early as possible
+        // We observe the entire document to catch iframes anywhere
+        var observerConfig = {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['src']
+        };
+
+        // Start observing immediately
+        if (document.documentElement) {
+            observer.observe(document.documentElement, observerConfig);
+        }
+
+        // Also process any iframes that get added after DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            var allIframes = document.querySelectorAll('iframe');
+            for (var i = 0; i < allIframes.length; i++) {
+                blockIframe(allIframes[i]);
+            }
+        });
+    }
+})();
+</script>
