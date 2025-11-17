@@ -25,8 +25,8 @@
     // Translations
     const TRANSLATIONS = {
         en: {
-            consentText: 'This embedded content is provided by an external service. By loading this content, data will be transmitted to third parties.',
-            consentTextWithProvider: 'This embedded content is provided by {provider}. By loading this content, data will be transmitted to {provider}.',
+            consentText: 'This embedded content is provided by an external service. By loading this content, data will be transmitted to third parties. The privacy policy of the external service applies.',
+            consentTextWithProvider: 'This embedded content is provided by {provider}. By loading this content, data will be transmitted to {provider}. The privacy policy of {provider} applies.',
             buttonLabel: 'Load content',
             alwaysAllowLabel: 'Always allow external media on this site',
             learnMore: 'Learn more',
@@ -37,8 +37,8 @@
             providerGeneric: 'External Content'
         },
         de: {
-            consentText: 'Dieses eingebettete Medium wird von einem externen Anbieter bereitgestellt. Durch das Laden dieses Inhalts werden Daten an Dritte übertragen.',
-            consentTextWithProvider: 'Dieses eingebettete Medium wird von {provider} bereitgestellt. Durch das Laden dieses Inhalts werden Daten an {provider} übertragen.',
+            consentText: 'Dieses eingebettete Medium wird von einem externen Anbieter bereitgestellt. Durch das Laden dieses Inhalts werden Daten an Dritte übertragen. Es gilt die Datenschutzvereinbarung des externen Anbieters.',
+            consentTextWithProvider: 'Dieses eingebettete Medium wird von {provider} bereitgestellt. Durch das Laden dieses Inhalts werden Daten an {provider} übertragen. Es gilt die Datenschutzvereinbarung von {provider}.',
             buttonLabel: 'Inhalt laden',
             alwaysAllowLabel: 'Externe Medien auf dieser Website immer erlauben',
             learnMore: 'Mehr erfahren',
@@ -91,10 +91,27 @@
     };
 
     /**
+     * Detect browser language and return supported language code
+     */
+    function detectBrowserLanguage() {
+        // Get browser language (e.g., 'de-DE', 'en-US', 'de', 'en')
+        const browserLang = navigator.language || navigator.userLanguage || '';
+
+        // Extract language code (first two characters)
+        const langCode = browserLang.toLowerCase().substring(0, 2);
+
+        // Return language if we have translations for it, otherwise default to English
+        return TRANSLATIONS[langCode] ? langCode : 'en';
+    }
+
+    /**
      * Get configuration from Hugo site params or meta tags
      */
     function getConfig() {
         const config = Object.assign({}, DEFAULT_CONFIG);
+
+        // Detect and use browser language as default
+        config.language = detectBrowserLanguage();
 
         // Try to read from meta tags
         const metaConfig = document.querySelector('meta[name="embed-consent-config"]');
