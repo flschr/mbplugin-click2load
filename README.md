@@ -251,21 +251,34 @@ User können ihre Einwilligung zurücksetzen:
 
 **Per Browser-Konsole:**
 ```javascript
-resetEmbedConsent()
+EmbedConsent.reset()
 ```
 
 **Per Button auf Datenschutz-Seite:**
 ```html
-<button onclick="resetEmbedConsent()">
+<button onclick="EmbedConsent.reset()">
   Einwilligung zurücksetzen
 </button>
 ```
 
 **Status prüfen:**
 ```javascript
-getEmbedConsentStatus()
+EmbedConsent.getStatus()
 // → { available: true, consent: true, message: "..." }
 ```
+
+**Plugin-Version abfragen:**
+```javascript
+EmbedConsent.version
+// → "2.1.0"
+```
+
+**Cleanup (bei SPA-Navigation):**
+```javascript
+EmbedConsent.cleanup()
+```
+
+**Hinweis:** Die alte API (`resetEmbedConsent()`, `getEmbedConsentStatus()`) funktioniert noch aus Kompatibilitätsgründen, zeigt aber eine Deprecation-Warnung. Verwende stattdessen die neue `EmbedConsent.*` API.
 
 ## Styling und Theme-Integration
 
@@ -456,6 +469,19 @@ Entwickelt für die Hugo und Micro.blog Community mit Fokus auf Privacy und User
 
 ---
 
-**Version**: 2.0.2
+**Version**: 2.1.0
 **Letztes Update**: 2025-11-17
 **Modus**: Automatische iframe-Erkennung
+
+## Was ist neu in v2.1.0?
+
+🚀 **Major Performance & Security Update**
+
+- **🔒 Sicherheit**: XSS-Schutz für alle dynamischen HTML-Einfügungen
+- **⚡ Performance**: Optimierte iframe-Verarbeitung (O(n²) → O(n))
+- **🎯 Debouncing**: Reduzierte CPU-Last durch intelligentes Batching
+- **🧹 Memory Leaks**: Cleanup-Funktionen für SPA-Anwendungen
+- **📦 Code Quality**: Refactored Aspect-Ratio Logik (42 → 5 Zeilen/Funktion)
+- **🌐 API**: Neue `EmbedConsent.*` Namespace (alte API weiterhin unterstützt)
+
+Siehe [CHANGELOG.md](CHANGELOG.md) für alle Details.

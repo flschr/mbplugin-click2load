@@ -4,7 +4,7 @@
  * Automatically detects and wraps all iframes with consent overlay.
  * No manual shortcode usage required - works with existing iframes!
  *
- * @version 2.0.1
+ * @version 2.1.0
  */
 
 (function() {
@@ -12,6 +12,9 @@
 
     // LocalStorage key for the global preference
     const STORAGE_KEY = 'embedConsentAlwaysAllow';
+
+    // Store observer references for cleanup
+    let mutationObserver = null;
 
     // Default configuration
     const DEFAULT_CONFIG = {
@@ -130,6 +133,33 @@
             logo: null
         }
     };
+
+    /**
+     * Escape HTML to prevent XSS
+     */
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    /**
+     * Debounce function to limit execution rate
+     */
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction() {
+            const context = this;
+            const args = arguments;
+            const later = function() {
+                timeout = null;
+                func.apply(context, args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
 
     /**
      * Detect browser language and return supported language code
@@ -270,7 +300,7 @@
 
         let privacyLink = '';
         if (config.privacyPolicyUrl) {
-            privacyLink = `<br><a href="${config.privacyPolicyUrl}" class="embed-consent-privacy-link">${translations.learnMore}</a>`;
+            privacyLink = `<br><a href="${escapeHtml(config.privacyPolicyUrl)}" class="embed-consent-privacy-link">${escapeHtml(translations.learnMore)}</a>`;
         }
 
         let checkboxHtml = '';
@@ -332,11 +362,78 @@
     }
 
     /**
+     * Calculate dimensions for iframe
+     */
+    function calculateDimensions(iframe) {
+        const dimensions = {
+            width: getNumericValue(iframe.getAttribute('width'), null),
+            height: getNumericValue(iframe.getAttribute('height'), null)
+        };
+
+        // If we couldn't get numeric values from attributes, try computed dimensions
+        if (!dimensions.width || !dimensions.height) {
+            const computed = iframe.getBoundingClientRect();
+            if (!dimensions.width && computed.width > 0) {
+                dimensions.width = computed.width;
+            }
+            if (!dimensions.height && computed.height > 0) {
+                dimensions.height = computed.height;
+            }
+        }
+
+        return dimensions;
+    }
+
+    /**
+     * Apply fixed height to wrapper
+     */
+    function applyFixedHeight(wrapper, height) {
+        wrapper.style.setProperty('--fixed-iframe-height', height + 'px');
+        wrapper.classList.add('embed-consent-fixed-height');
+        wrapper.dataset.hasAspectRatio = 'false';
+    }
+
+    /**
+     * Apply dynamic aspect ratio to wrapper
+     */
+    function applyDynamicAspectRatio(wrapper, width, height) {
+        const aspectRatio = (height / width) * 100;
+        wrapper.style.setProperty('--aspect-ratio-padding', aspectRatio + '%');
+        wrapper.style.setProperty('--iframe-aspect-ratio', width + ' / ' + height);
+        wrapper.dataset.hasAspectRatio = 'true';
+    }
+
+    /**
+     * Apply default 16:9 aspect ratio to wrapper
+     */
+    function applyDefaultAspectRatio(wrapper) {
+        wrapper.style.setProperty('--aspect-ratio-padding', '56.25%');
+        wrapper.style.setProperty('--iframe-aspect-ratio', '16 / 9');
+        wrapper.dataset.hasAspectRatio = 'false';
+    }
+
+    /**
+     * Configure wrapper aspect ratio based on iframe dimensions
+     */
+    function configureAspectRatio(wrapper, iframe) {
+        const dimensions = calculateDimensions(iframe);
+        const prefersFixedHeight = Boolean(dimensions.height && !dimensions.width);
+
+        if (prefersFixedHeight) {
+            applyFixedHeight(wrapper, dimensions.height);
+        } else if (dimensions.width && dimensions.height) {
+            applyDynamicAspectRatio(wrapper, dimensions.width, dimensions.height);
+        } else {
+            applyDefaultAspectRatio(wrapper);
+        }
+    }
+
+    /**
      * Wrap an iframe with consent overlay
      */
     function wrapIframe(iframe, config) {
-        // Skip if already wrapped
-        if (iframe.closest('.embed-consent-wrapper')) {
+        // Skip if already wrapped or processed
+        if (iframe.closest('.embed-consent-wrapper') || iframe.dataset.consentProcessed === 'true') {
             return;
         }
 
@@ -356,6 +453,9 @@
             return; // No src to load
         }
 
+        // Mark as processed to prevent race conditions
+        iframe.dataset.consentProcessed = 'true';
+
         const provider = detectProvider(src);
         const translations = TRANSLATIONS[config.language] || TRANSLATIONS.en;
 
@@ -364,49 +464,8 @@
         wrapper.className = 'embed-consent-wrapper';
         wrapper.dataset.provider = provider;
 
-        // Get dimensions for aspect ratio
-        // Extract numeric values from width and height attributes
-        const widthAttr = iframe.getAttribute('width');
-        const heightAttr = iframe.getAttribute('height');
-
-        const widthAttrValue = getNumericValue(widthAttr, null);
-        const heightAttrValue = getNumericValue(heightAttr, null);
-
-        let width = widthAttrValue;
-        let height = heightAttrValue;
-
-        // If an explicit height is set but no valid width exists, we should
-        // respect the fixed height instead of forcing a 16:9 aspect ratio.
-        const prefersFixedHeight = Boolean(heightAttrValue && widthAttrValue === null);
-
-        // If we couldn't get numeric values from attributes, try computed dimensions
-        if (!width || !height) {
-            const computed = iframe.getBoundingClientRect();
-            if (!width && computed.width > 0) {
-                width = computed.width;
-            }
-            if (!height && computed.height > 0) {
-                height = computed.height;
-            }
-        }
-
-        const hasAspectRatio = Boolean(!prefersFixedHeight && width && height);
-
-        if (hasAspectRatio) {
-            const aspectRatio = (height / width) * 100;
-            wrapper.style.setProperty('--aspect-ratio-padding', aspectRatio + '%');
-            wrapper.style.setProperty('--iframe-aspect-ratio', width + ' / ' + height);
-            wrapper.dataset.hasAspectRatio = 'true';
-        } else if (prefersFixedHeight && height) {
-            wrapper.style.setProperty('--fixed-iframe-height', height + 'px');
-            wrapper.classList.add('embed-consent-fixed-height');
-            wrapper.dataset.hasAspectRatio = 'false';
-        } else {
-            // Fallback to 16:9 for the overlay display
-            wrapper.style.setProperty('--aspect-ratio-padding', '56.25%');
-            wrapper.style.setProperty('--iframe-aspect-ratio', '16 / 9');
-            wrapper.dataset.hasAspectRatio = 'false';
-        }
+        // Configure aspect ratio (refactored logic)
+        configureAspectRatio(wrapper, iframe);
 
         // Store original src and remove it (if not already done by early blocker script)
         if (!iframe.dataset.consentSrc) {
@@ -496,52 +555,130 @@
     }
 
     /**
-     * Global function to reset consent
+     * Process only newly added iframes (optimized for performance)
      */
-    window.resetEmbedConsent = function() {
-        if (!isLocalStorageAvailable()) {
-            alert('LocalStorage is not available in your browser.');
-            return false;
-        }
-
+    function processNewIframes(addedNodes) {
         const config = getConfig();
-        const translations = TRANSLATIONS[config.language] || TRANSLATIONS.en;
-        const hadConsent = getStoredConsent();
-        saveConsent(false);
 
-        if (hadConsent) {
-            const message = config.language === 'de'
-                ? 'Die Einwilligung für externe Medien wurde zurückgesetzt. Bitte laden Sie die Seite neu.'
-                : 'Embed consent preference has been reset. Please reload the page.';
-            alert(message);
-        } else {
-            const message = config.language === 'de'
-                ? 'Es war keine Einwilligung gespeichert.'
-                : 'No consent preference was stored.';
-            alert(message);
-        }
-
-        return true;
-    };
+        addedNodes.forEach(function(node) {
+            if (node.nodeType === 1) { // Element node
+                try {
+                    // Check if the node itself is an iframe
+                    if (node.tagName === 'IFRAME') {
+                        wrapIframe(node, config);
+                    }
+                    // Check if the node contains iframes
+                    else if (node.querySelectorAll) {
+                        const iframes = node.querySelectorAll('iframe');
+                        iframes.forEach(function(iframe) {
+                            wrapIframe(iframe, config);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Failed to wrap iframe:', error);
+                }
+            }
+        });
+    }
 
     /**
-     * Global function to check consent status
+     * Show notification toast (better UX than alert)
      */
-    window.getEmbedConsentStatus = function() {
-        if (!isLocalStorageAvailable()) {
-            return {
-                available: false,
-                consent: false,
-                message: 'LocalStorage is not available'
-            };
-        }
+    function showNotification(message, type) {
+        // For now, use console instead of intrusive alerts
+        // Can be extended with custom toast UI later
+        const prefix = type === 'info' ? 'ℹ️' : type === 'success' ? '✓' : '⚠';
+        console.log(`${prefix} Embed Consent: ${message}`);
 
-        const consent = getStoredConsent();
-        return {
-            available: true,
-            consent: consent,
-            message: consent ? 'Embeds will load automatically' : 'Consent required for each embed'
-        };
+        // Return message for programmatic use
+        return message;
+    }
+
+    /**
+     * Cleanup function to prevent memory leaks
+     */
+    function cleanup() {
+        if (mutationObserver) {
+            mutationObserver.disconnect();
+            mutationObserver = null;
+        }
+    }
+
+    /**
+     * Public API - Global namespace for embed consent functions
+     */
+    window.EmbedConsent = {
+        /**
+         * Reset consent preference
+         */
+        reset: function() {
+            if (!isLocalStorageAvailable()) {
+                const msg = 'LocalStorage is not available in your browser.';
+                showNotification(msg, 'warning');
+                return { success: false, message: msg };
+            }
+
+            const config = getConfig();
+            const hadConsent = getStoredConsent();
+            saveConsent(false);
+
+            let message;
+            if (hadConsent) {
+                message = config.language === 'de'
+                    ? 'Die Einwilligung für externe Medien wurde zurückgesetzt. Bitte laden Sie die Seite neu.'
+                    : 'Embed consent preference has been reset. Please reload the page.';
+                showNotification(message, 'success');
+            } else {
+                message = config.language === 'de'
+                    ? 'Es war keine Einwilligung gespeichert.'
+                    : 'No consent preference was stored.';
+                showNotification(message, 'info');
+            }
+
+            return { success: true, hadConsent: hadConsent, message: message };
+        },
+
+        /**
+         * Get current consent status
+         */
+        getStatus: function() {
+            if (!isLocalStorageAvailable()) {
+                return {
+                    available: false,
+                    consent: false,
+                    message: 'LocalStorage is not available'
+                };
+            }
+
+            const consent = getStoredConsent();
+            return {
+                available: true,
+                consent: consent,
+                message: consent ? 'Embeds will load automatically' : 'Consent required for each embed'
+            };
+        },
+
+        /**
+         * Cleanup observers and listeners
+         */
+        cleanup: cleanup,
+
+        /**
+         * Get plugin version
+         */
+        version: '2.1.0'
+    };
+
+    // Backwards compatibility - deprecated, use EmbedConsent.reset() instead
+    window.resetEmbedConsent = function() {
+        console.warn('resetEmbedConsent() is deprecated. Use EmbedConsent.reset() instead.');
+        return window.EmbedConsent.reset();
+    };
+
+    // Backwards compatibility - deprecated, use EmbedConsent.getStatus() instead
+    window.getEmbedConsentStatus = function() {
+        console.warn('getEmbedConsentStatus() is deprecated. Use EmbedConsent.getStatus() instead.');
+        return window.EmbedConsent.getStatus();
     };
 
     /**
@@ -550,29 +687,30 @@
     function initialize() {
         processAllIframes();
 
-        // Watch for new iframes added dynamically
+        // Watch for new iframes added dynamically (optimized with debouncing)
         if (typeof MutationObserver !== 'undefined') {
-            const observer = new MutationObserver(function(mutations) {
-                let hasNewIframes = false;
+            // Create debounced handler for better performance
+            const debouncedHandler = debounce(function(mutations) {
+                const addedNodes = [];
 
                 mutations.forEach(function(mutation) {
                     mutation.addedNodes.forEach(function(node) {
-                        if (node.nodeType === 1) {
-                            if (node.tagName === 'IFRAME') {
-                                hasNewIframes = true;
-                            } else if (node.querySelector && node.querySelector('iframe')) {
-                                hasNewIframes = true;
+                        if (node.nodeType === 1) { // Element node
+                            if (node.tagName === 'IFRAME' || (node.querySelector && node.querySelector('iframe'))) {
+                                addedNodes.push(node);
                             }
                         }
                     });
                 });
 
-                if (hasNewIframes) {
-                    setTimeout(processAllIframes, 100);
+                if (addedNodes.length > 0) {
+                    processNewIframes(addedNodes);
                 }
-            });
+            }, 150); // 150ms debounce
 
-            observer.observe(document.body, {
+            mutationObserver = new MutationObserver(debouncedHandler);
+
+            mutationObserver.observe(document.body, {
                 childList: true,
                 subtree: true
             });

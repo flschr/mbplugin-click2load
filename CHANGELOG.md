@@ -7,6 +7,123 @@ Versionierung folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.1.0] - 2025-11-17
+
+### 🚀 Major Performance & Security Update
+
+Diese Version enthält umfassende Verbesserungen in Performance, Sicherheit, Code-Qualität und Developer Experience.
+
+### Security
+
+- **🔒 XSS-Schutz**: Alle dynamischen HTML-Einfügungen werden jetzt escaped
+  - `privacyPolicyUrl` wird mit `escapeHtml()` sanitiert
+  - Verhindert potenzielle Cross-Site-Scripting Angriffe
+  - Kritischer Fix für produktive Umgebungen
+
+### Performance
+
+- **⚡ Optimierte iframe-Verarbeitung**: Reduziert von O(n²) auf O(n) Komplexität
+  - Neue `processNewIframes()` Funktion verarbeitet nur neu hinzugefügte iframes
+  - Eliminiert unnötiges Re-Processing aller iframes bei jeder DOM-Änderung
+  - Deutlich bessere Performance auf Seiten mit vielen iframes
+
+- **🎯 Debouncing für MutationObserver**: 150ms Debounce-Zeit
+  - Verhindert excessive DOM-Operationen bei schnellen Änderungen
+  - Reduziert CPU-Last bei dynamischen Inhalten
+  - Implementiert mit robuster `debounce()` Hilfsfunktion
+
+- **🔄 Koordinierte Observer**: Behebung des doppelten MutationObserver Problems
+  - Früher Blocker-Observer konzentriert sich nur auf das Blockieren
+  - Haupt-Observer kümmert sich nur um das Wrapping
+  - Klare Aufgabentrennung durch `data-consent-processed` Flag
+  - Verhindert Race Conditions und doppelte Arbeit
+
+- **🧹 Memory Leak Prevention**: Cleanup-Funktionen hinzugefügt
+  - `EmbedConsent.cleanup()` disconnected alle Observers
+  - Proper cleanup bei SPA-Navigation
+  - Exponiert `__embedConsentCleanupEarlyBlocker()` für frühen Observer
+
+### Code Quality
+
+- **📦 Refactoring: Aspect-Ratio Logik**: 42 Zeilen verschachtelte if-else vereinfacht
+  - Neue Funktionen: `calculateDimensions()`, `applyFixedHeight()`, `applyDynamicAspectRatio()`, `applyDefaultAspectRatio()`
+  - Zentrale `configureAspectRatio()` Funktion für einfache Wartung
+  - Bessere Lesbarkeit und Testbarkeit
+  - Reduzierte Komplexität (von ~15 auf ~5 Zeilen pro Funktion)
+
+- **🎨 CSS-Optimierung**: Dark Mode Duplikation entfernt
+  - Konsolidierte CSS Custom Properties
+  - Reduzierte Dateigröße
+  - Bessere Wartbarkeit
+
+### Developer Experience
+
+- **🌐 Moderner Namespace**: `window.EmbedConsent.*` statt globale Funktionen
+  - `EmbedConsent.reset()` - Consent zurücksetzen
+  - `EmbedConsent.getStatus()` - Status abfragen
+  - `EmbedConsent.cleanup()` - Aufräumen
+  - `EmbedConsent.version` - Plugin-Version
+  - Backwards compatibility für alte API erhalten (mit Deprecation Warning)
+
+- **✨ Bessere UX**: Alerts durch Console-Logs ersetzt
+  - `showNotification()` Funktion mit Icons (ℹ️, ✓, ⚠)
+  - Nicht-blockierende Benachrichtigungen
+  - Return-Values für programmatische Nutzung
+  - Kann später leicht zu Toast-UI erweitert werden
+
+- **⚙️ Modernisierung**: `setAttribute()` zu `dataset` API
+  - Modernerer, lesbarerer Code
+  - Konsistenz durch gesamte Codebase
+  - Bessere Browser-Performance
+
+### Fixed
+
+- **🐛 Race Condition**: iframe-Verarbeitung jetzt thread-safe
+  - `data-consent-processed` Flag verhindert doppelte Verarbeitung
+  - Früher und später Observer koordinieren über gemeinsames Flag
+  - Eliminiert Edge Cases bei gleichzeitiger iframe-Einfügung
+
+### Changed
+
+- **📖 API-Änderungen** (Backwards Compatible):
+  - `resetEmbedConsent()` → `EmbedConsent.reset()` (deprecated mit Warning)
+  - `getEmbedConsentStatus()` → `EmbedConsent.getStatus()` (deprecated mit Warning)
+  - Alte API funktioniert weiterhin, zeigt aber Deprecation-Warning
+
+### Internal
+
+- Neue Hilfsfunktionen: `escapeHtml()`, `debounce()`, `showNotification()`, `cleanup()`
+- Globale Variable `mutationObserver` für Cleanup-Tracking
+- Optimierte Observer-Konfiguration (nur `childList`, kein `attributes` mehr im frühen Blocker)
+- Verbesserte Fehlerbehandlung mit try-catch Blöcken
+- Kommentare und Dokumentation erweitert
+
+### Migration Guide
+
+Wenn du die alte API verwendest, solltest du aktualisieren:
+
+```javascript
+// Alt (funktioniert weiter, aber deprecated)
+resetEmbedConsent();
+getEmbedConsentStatus();
+
+// Neu (empfohlen)
+EmbedConsent.reset();
+EmbedConsent.getStatus();
+```
+
+Cleanup bei SPA-Navigation:
+
+```javascript
+// Vorher: Kein Cleanup möglich
+// Jetzt: Observers aufräumen
+window.addEventListener('beforeunload', () => {
+    EmbedConsent.cleanup();
+});
+```
+
+---
+
 ## [2.0.2] - 2025-11-17
 
 ### Fixed

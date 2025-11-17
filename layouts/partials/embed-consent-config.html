@@ -18,13 +18,14 @@
 <script>
 (function() {
     var root = document.documentElement;
-    root.setAttribute('data-embed-consent-storage', '{{ $enableLocalStorage }}');
-    root.setAttribute('data-embed-consent-always-allow', '{{ $showAlwaysAllowOption }}');
+    // Use dataset API (modern approach)
+    root.dataset.embedConsentStorage = '{{ $enableLocalStorage }}';
+    root.dataset.embedConsentAlwaysAllow = '{{ $showAlwaysAllowOption }}';
     {{- if $language -}}
-    root.setAttribute('data-embed-consent-language', '{{ $language }}');
+    root.dataset.embedConsentLanguage = '{{ $language }}';
     {{- end -}}
     {{- if $privacyPolicyUrl -}}
-    root.setAttribute('data-embed-consent-privacy-url', '{{ $privacyPolicyUrl }}');
+    root.dataset.embedConsentPrivacyUrl = '{{ $privacyPolicyUrl }}';
     {{- end -}}
 })();
 </script>
@@ -38,10 +39,13 @@
 (function() {
     'use strict';
 
+    // Store observer reference for cleanup
+    var earlyBlockerObserver = null;
+
     // Function to block iframe from loading
     function blockIframe(iframe) {
         // Skip if already processed
-        if (iframe.hasAttribute('data-consent-processed')) {
+        if (iframe.dataset.consentProcessed === 'true') {
             return;
         }
 
@@ -53,9 +57,10 @@
         var src = iframe.getAttribute('src');
         if (src) {
             // Move src to data-consent-src to prevent loading
-            iframe.setAttribute('data-consent-src', src);
+            iframe.dataset.consentSrc = src;
             iframe.removeAttribute('src');
-            iframe.setAttribute('data-consent-processed', 'true');
+            // Mark as processed to avoid duplicate work
+            iframe.dataset.consentProcessed = 'true';
         }
     }
 
@@ -66,11 +71,11 @@
     }
 
     // Set up MutationObserver to catch iframes as they're added to the DOM
-    // This runs BEFORE the browser loads the iframe src
+    // This observer ONLY blocks - it doesn't wrap. The main plugin handles wrapping.
     if (typeof MutationObserver !== 'undefined') {
-        var observer = new MutationObserver(function(mutations) {
+        earlyBlockerObserver = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
-                // Check added nodes
+                // Only check added nodes - more efficient
                 for (var i = 0; i < mutation.addedNodes.length; i++) {
                     var node = mutation.addedNodes[i];
                     if (node.nodeType === 1) { // Element node
@@ -79,7 +84,7 @@
                             blockIframe(node);
                         }
                         // Check if the node contains iframes
-                        if (node.querySelectorAll) {
+                        else if (node.querySelectorAll) {
                             var iframes = node.querySelectorAll('iframe');
                             for (var j = 0; j < iframes.length; j++) {
                                 blockIframe(iframes[j]);
@@ -87,31 +92,18 @@
                         }
                     }
                 }
-
-                // Also check for attribute changes on existing iframes
-                if (mutation.type === 'attributes' &&
-                    mutation.target.tagName === 'IFRAME' &&
-                    mutation.attributeName === 'src') {
-                    blockIframe(mutation.target);
-                }
             });
         });
 
-        // Start observing as early as possible
-        // We observe the entire document to catch iframes anywhere
-        var observerConfig = {
-            childList: true,
-            subtree: true,
-            attributes: true,
-            attributeFilter: ['src']
-        };
-
-        // Start observing immediately
+        // Start observing - childList only (no attribute watching needed)
         if (document.documentElement) {
-            observer.observe(document.documentElement, observerConfig);
+            earlyBlockerObserver.observe(document.documentElement, {
+                childList: true,
+                subtree: true
+            });
         }
 
-        // Also process any iframes that get added after DOM is ready
+        // Process any iframes after DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
             var allIframes = document.querySelectorAll('iframe');
             for (var i = 0; i < allIframes.length; i++) {
@@ -119,5 +111,13 @@
             }
         });
     }
+
+    // Expose cleanup function
+    window.__embedConsentCleanupEarlyBlocker = function() {
+        if (earlyBlockerObserver) {
+            earlyBlockerObserver.disconnect();
+            earlyBlockerObserver = null;
+        }
+    };
 })();
 </script>
