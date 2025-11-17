@@ -7,6 +7,16 @@ Versionierung folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.1.1] - 2025-11-17
+
+### 🐛 Critical Bugfix
+
+- **Fixed iframes and consent banners not loading**: Der early-blocker in `embed-consent-config.html` setzte fälschlicherweise das Flag `consentProcessed = 'true'`, was dazu führte, dass das Haupt-Plugin alle iframes übersprang
+  - Early-blocker setzt jetzt kein `consentProcessed` Flag mehr
+  - Stattdessen prüft er ob das iframe bereits in einem `.embed-consent-wrapper` ist
+  - Das Haupt-Plugin setzt das Flag selbst nachdem es das iframe verarbeitet hat
+  - Behebt das Problem dass seit v2.1.0 keine iframes und consent-Banner mehr geladen wurden
+
 ## [2.1.0] - 2025-11-17
 
 ### 🚀 Major Performance & Security Update

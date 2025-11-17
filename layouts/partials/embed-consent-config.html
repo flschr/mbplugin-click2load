@@ -44,8 +44,8 @@
 
     // Function to block iframe from loading
     function blockIframe(iframe) {
-        // Skip if already processed
-        if (iframe.dataset.consentProcessed === 'true') {
+        // Skip if already wrapped by main plugin
+        if (iframe.closest('.embed-consent-wrapper')) {
             return;
         }
 
@@ -59,8 +59,7 @@
             // Move src to data-consent-src to prevent loading
             iframe.dataset.consentSrc = src;
             iframe.removeAttribute('src');
-            // Mark as processed to avoid duplicate work
-            iframe.dataset.consentProcessed = 'true';
+            // Don't set consentProcessed here - let the main plugin handle that
         }
     }
 
