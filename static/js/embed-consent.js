@@ -55,10 +55,67 @@
     };
 
     const LOGOS = {
-        arte: '/img/ARTE-Logo.png',
-        komoot: '/img/Komoot-Logo.png',
-        openstreetmap: '/img/OSM-Logo.png'
+        arte: 'img/ARTE-Logo.png',
+        komoot: 'img/Komoot-Logo.png',
+        openstreetmap: 'img/OSM-Logo.png'
     };
+
+    /**
+     * Determine the base URL for plugin assets based on the current script tag
+     */
+    function getScriptBaseUrl() {
+        const scripts = document.getElementsByTagName('script');
+
+        for (let i = scripts.length - 1; i >= 0; i--) {
+            const script = scripts[i];
+            if (script && script.src && script.src.includes('embed-consent')) {
+                try {
+                    const scriptUrl = new URL(script.src, window.location.href);
+                    scriptUrl.search = '';
+                    scriptUrl.hash = '';
+                    scriptUrl.pathname = scriptUrl.pathname.replace(/js\/embed-consent\.js.*$/, '');
+                    if (!scriptUrl.pathname.endsWith('/')) {
+                        scriptUrl.pathname += '/';
+                    }
+                    return scriptUrl;
+                } catch (error) {
+                    console.warn('Failed to parse embed consent script URL:', error);
+                }
+            }
+        }
+
+        try {
+            return new URL('.', window.location.href);
+        } catch (error) {
+            return new URL(window.location.href);
+        }
+    }
+
+    const SCRIPT_BASE_URL = getScriptBaseUrl();
+
+    /**
+     * Convert a relative asset path into an absolute URL
+     */
+    function resolveAssetPath(path) {
+        if (!path) {
+            return null;
+        }
+
+        if (/^(?:[a-z]+:)?\/\//i.test(path) || path.startsWith('data:')) {
+            return path;
+        }
+
+        try {
+            if (path.startsWith('/')) {
+                return new URL(path, window.location.href).toString();
+            }
+
+            return new URL(path, SCRIPT_BASE_URL).toString();
+        } catch (error) {
+            console.warn('Failed to resolve embed consent asset path:', path, error);
+            return path;
+        }
+    }
 
     // Provider detection patterns
     const PROVIDERS = {
@@ -69,7 +126,7 @@
                 /youtu\.be\//i
             ],
             name: 'YouTube',
-            logo: '/img/YouTube-Logo.png',
+            logo: 'img/YouTube-Logo.png',
             logoWidth: 90,
             logoHeight: 36
         },
@@ -79,7 +136,7 @@
                 /player\.vimeo\.com\/video\//i
             ],
             name: 'Vimeo',
-            logo: '/img/Vimeo-Logo.png'
+            logo: 'img/Vimeo-Logo.png'
         },
         arte: {
             patterns: [
@@ -105,7 +162,7 @@
                 /googleusercontent\.com\/maps/i
             ],
             name: 'Google Maps',
-            logo: '/img/Google_Maps-Logo.png',
+            logo: 'img/Google_Maps-Logo.png',
             logoWidth: 90,
             logoHeight: 36
         },
@@ -253,7 +310,7 @@
      */
     function createOverlay(provider, config, translations) {
         const providerName = getProviderName(provider, config.language);
-        const providerLogo = PROVIDERS[provider]?.logo;
+        const providerLogo = resolveAssetPath(PROVIDERS[provider]?.logo);
 
         // Use provider-specific text if we know the provider, otherwise use generic text
         let consentText = translations.consentText;
