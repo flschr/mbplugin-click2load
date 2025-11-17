@@ -1,34 +1,17 @@
 {{- /*
-    Embed Consent Plugin Configuration Partial
+    Embed Consent Early Blocker
 
-    Include this in your <head> section to configure the plugin via data attributes.
-    The JavaScript will automatically read these configuration values.
+    This script prevents iframes from loading before the user gives consent.
+    Include this in your <head> section BEFORE any content loads.
 
-    Usage in baseof.html:
+    Usage in baseof.html or head.html:
     {{ partial "embed-consent-config.html" . }}
+
+    No configuration needed - the plugin uses sensible defaults:
+    - LocalStorage enabled (remembers user preferences)
+    - "Always allow" checkbox shown
+    - Auto language detection (de/en based on browser)
 */ -}}
-
-{{- $config := .Site.Params.embedConsent | default dict -}}
-{{- $enableLocalStorage := $config.enableLocalStorage | default true -}}
-{{- $showAlwaysAllowOption := $config.showAlwaysAllowOption | default true -}}
-{{- $language := $config.language -}}
-{{- $privacyPolicyUrl := $config.privacyPolicyUrl | default "" -}}
-
-{{- /* Set data attributes on html element for JavaScript to read */ -}}
-<script>
-(function() {
-    var root = document.documentElement;
-    // Use dataset API (modern approach)
-    root.dataset.embedConsentStorage = '{{ $enableLocalStorage }}';
-    root.dataset.embedConsentAlwaysAllow = '{{ $showAlwaysAllowOption }}';
-    {{- if $language -}}
-    root.dataset.embedConsentLanguage = '{{ $language }}';
-    {{- end -}}
-    {{- if $privacyPolicyUrl -}}
-    root.dataset.embedConsentPrivacyUrl = '{{ $privacyPolicyUrl }}';
-    {{- end -}}
-})();
-</script>
 
 {{- /*
     CRITICAL: Prevent iframes from loading BEFORE consent
