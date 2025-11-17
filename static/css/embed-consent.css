@@ -83,7 +83,7 @@
 /* Modern aspect-ratio property (with fallback above) */
 @supports (aspect-ratio: 16 / 9) {
     .embed-consent-wrapper {
-        aspect-ratio: 16 / 9;
+        aspect-ratio: var(--iframe-aspect-ratio, 16 / 9);
         padding-bottom: 0;
         height: auto;
     }
