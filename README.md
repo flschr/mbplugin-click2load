@@ -1,0 +1,1 @@
+# mbplugin-click2load
