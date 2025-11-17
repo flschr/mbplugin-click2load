@@ -73,7 +73,7 @@
                     const scriptUrl = new URL(script.src, window.location.href);
                     scriptUrl.search = '';
                     scriptUrl.hash = '';
-                    scriptUrl.pathname = scriptUrl.pathname.replace(/js\/embed-consent\.js.*$/, '');
+                    scriptUrl.pathname = scriptUrl.pathname.replace(/embed-consent\.js.*$/, '');
                     if (!scriptUrl.pathname.endsWith('/')) {
                         scriptUrl.pathname += '/';
                     }
