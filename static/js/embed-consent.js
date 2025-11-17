@@ -305,11 +305,15 @@
         const widthAttr = iframe.getAttribute('width');
         const heightAttr = iframe.getAttribute('height');
 
-        let width = getNumericValue(widthAttr, null);
-        let height = getNumericValue(heightAttr, null);
+        const widthAttrValue = getNumericValue(widthAttr, null);
+        const heightAttrValue = getNumericValue(heightAttr, null);
 
-        // Track if we have valid numeric dimensions from attributes
-        const hasValidDimensions = (width !== null && height !== null);
+        let width = widthAttrValue;
+        let height = heightAttrValue;
+
+        // If an explicit height is set but no valid width exists, we should
+        // respect the fixed height instead of forcing a 16:9 aspect ratio.
+        const prefersFixedHeight = Boolean(heightAttrValue && widthAttrValue === null);
 
         // If we couldn't get numeric values from attributes, try computed dimensions
         if (!width || !height) {
@@ -322,12 +326,17 @@
             }
         }
 
-        // Only set aspect-ratio if we have valid numeric dimensions
-        if (hasValidDimensions && width && height) {
+        const hasAspectRatio = Boolean(!prefersFixedHeight && width && height);
+
+        if (hasAspectRatio) {
             const aspectRatio = (height / width) * 100;
             wrapper.style.setProperty('--aspect-ratio-padding', aspectRatio + '%');
             wrapper.style.setProperty('--iframe-aspect-ratio', width + ' / ' + height);
             wrapper.dataset.hasAspectRatio = 'true';
+        } else if (prefersFixedHeight && height) {
+            wrapper.style.setProperty('--fixed-iframe-height', height + 'px');
+            wrapper.classList.add('embed-consent-fixed-height');
+            wrapper.dataset.hasAspectRatio = 'false';
         } else {
             // Fallback to 16:9 for the overlay display
             wrapper.style.setProperty('--aspect-ratio-padding', '56.25%');

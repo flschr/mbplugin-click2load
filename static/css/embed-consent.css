@@ -89,6 +89,18 @@
     }
 }
 
+.embed-consent-wrapper.embed-consent-fixed-height {
+    padding-bottom: 0;
+    height: var(--fixed-iframe-height, 400px);
+    min-height: var(--fixed-iframe-height, 400px);
+}
+
+@supports (aspect-ratio: 16 / 9) {
+    .embed-consent-wrapper.embed-consent-fixed-height {
+        aspect-ratio: auto;
+    }
+}
+
 /* Active state: Allow wrapper to adapt to actual iframe size */
 .embed-consent-wrapper.embed-consent-active {
     padding-bottom: 0;
@@ -100,6 +112,10 @@
     .embed-consent-wrapper.embed-consent-active {
         aspect-ratio: unset;
     }
+}
+
+.embed-consent-wrapper.embed-consent-fixed-height.embed-consent-active {
+    height: var(--fixed-iframe-height, 400px);
 }
 
 /* ========================================
@@ -132,6 +148,11 @@
     opacity: 1;
     pointer-events: auto;
     transition: opacity 0.3s ease-in-out;
+}
+
+.embed-consent-wrapper.embed-consent-fixed-height .embed-consent-iframe,
+.embed-consent-wrapper.embed-consent-fixed-height.embed-consent-active .embed-consent-iframe {
+    height: 100%;
 }
 
 /* Only apply aspect-ratio if wrapper has valid dimensions */
