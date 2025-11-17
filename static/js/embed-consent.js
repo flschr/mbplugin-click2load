@@ -57,7 +57,7 @@
     // Use root-relative paths so the icons also load on permalink pages that
     // live under nested URLs like "/2024/11/post/".
     const LOGOS = {
-        arte: '/img/Arte-Logo.png',
+        arte: '/img/Arte-Logo.webp',
         youtube: '/img/YouTube-Logo.png',
         vimeo: '/img/Vimeo-Logo.png',
         komoot: '/img/Komoot-Logo.png',
