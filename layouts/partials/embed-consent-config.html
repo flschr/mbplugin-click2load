@@ -14,7 +14,7 @@
 {{- $language := $config.language -}}
 {{- $privacyPolicyUrl := $config.privacyPolicyUrl | default "" -}}
 {{- $assetBase := .Site.BaseURL | default "/" -}}
-{{- if not (strings.HasSuffix $assetBase "/") -}}
+{{- if not (hasSuffix $assetBase "/") -}}
     {{- $assetBase = printf "%s/" $assetBase -}}
 {{- end -}}
 
