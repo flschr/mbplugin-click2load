@@ -1,0 +1,423 @@
+/**
+ * Embed Consent Plugin - Styles
+ *
+ * Provides consent-protected embed styling with:
+ * - Responsive aspect ratio containers
+ * - Theme-aware border-radius
+ * - Light/dark mode support
+ * - Accessible UI components
+ *
+ * @version 1.0.0
+ */
+
+/* ========================================
+   CSS Custom Properties (Theme Integration)
+   ======================================== */
+
+:root {
+    /* Default border radius - can be overridden by theme */
+    --embed-consent-radius: var(--radius-default, 0.5rem);
+
+    /* Color scheme - light mode defaults */
+    --embed-consent-bg: rgba(255, 255, 255, 0.95);
+    --embed-consent-text: #1a1a1a;
+    --embed-consent-text-muted: #666;
+    --embed-consent-border: rgba(0, 0, 0, 0.1);
+    --embed-consent-overlay-bg: rgba(0, 0, 0, 0.85);
+
+    /* Button colors */
+    --embed-consent-button-bg: #2563eb;
+    --embed-consent-button-text: #ffffff;
+    --embed-consent-button-hover-bg: #1d4ed8;
+
+    /* Icon color */
+    --embed-consent-icon-color: rgba(255, 255, 255, 0.9);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --embed-consent-bg: rgba(30, 30, 30, 0.95);
+        --embed-consent-text: #e5e5e5;
+        --embed-consent-text-muted: #a3a3a3;
+        --embed-consent-border: rgba(255, 255, 255, 0.1);
+        --embed-consent-overlay-bg: rgba(0, 0, 0, 0.9);
+
+        --embed-consent-button-bg: #3b82f6;
+        --embed-consent-button-text: #ffffff;
+        --embed-consent-button-hover-bg: #2563eb;
+    }
+}
+
+/* Allow explicit dark mode class override */
+.dark .embed-consent-wrapper,
+[data-theme="dark"] .embed-consent-wrapper {
+    --embed-consent-bg: rgba(30, 30, 30, 0.95);
+    --embed-consent-text: #e5e5e5;
+    --embed-consent-text-muted: #a3a3a3;
+    --embed-consent-border: rgba(255, 255, 255, 0.1);
+    --embed-consent-overlay-bg: rgba(0, 0, 0, 0.9);
+
+    --embed-consent-button-bg: #3b82f6;
+    --embed-consent-button-text: #ffffff;
+    --embed-consent-button-hover-bg: #2563eb;
+}
+
+/* ========================================
+   Embed Container (Aspect Ratio)
+   ======================================== */
+
+.embed-consent-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    background-color: #000;
+    border-radius: var(--embed-consent-radius);
+
+    /* Aspect ratio using padding-bottom trick for older browsers */
+    padding-bottom: var(--aspect-ratio-padding, 56.25%);
+    height: 0;
+}
+
+/* Modern aspect-ratio property (with fallback above) */
+@supports (aspect-ratio: 16 / 9) {
+    .embed-consent-wrapper {
+        aspect-ratio: 16 / 9;
+        padding-bottom: 0;
+        height: auto;
+    }
+}
+
+/* ========================================
+   Iframe Styling
+   ======================================== */
+
+.embed-consent-iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: var(--embed-consent-radius);
+
+    /* Clip to rounded corners */
+    overflow: hidden;
+}
+
+/* Hide iframe until consent is given */
+.embed-consent-wrapper:not(.embed-consent-active) .embed-consent-iframe {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Show iframe after consent */
+.embed-consent-wrapper.embed-consent-active .embed-consent-iframe {
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* ========================================
+   Consent Overlay
+   ======================================== */
+
+.embed-consent-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--embed-consent-overlay-bg);
+    border-radius: var(--embed-consent-radius);
+    z-index: 10;
+    padding: 1.5rem;
+    box-sizing: border-box;
+}
+
+/* Hide overlay after consent */
+.embed-consent-wrapper.embed-consent-active .embed-consent-overlay {
+    display: none;
+}
+
+/* ========================================
+   Thumbnail Background
+   ======================================== */
+
+.embed-consent-thumbnail {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.3;
+    filter: blur(8px);
+    border-radius: var(--embed-consent-radius);
+}
+
+/* ========================================
+   Consent Content (Text and Actions)
+   ======================================== */
+
+.embed-consent-content {
+    position: relative;
+    z-index: 20;
+    text-align: center;
+    max-width: 500px;
+    width: 100%;
+    background-color: var(--embed-consent-bg);
+    border-radius: var(--embed-consent-radius);
+    padding: 2rem 1.5rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--embed-consent-border);
+}
+
+/* ========================================
+   Icon
+   ======================================== */
+
+.embed-consent-icon {
+    margin-bottom: 1rem;
+    color: var(--embed-consent-icon-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.embed-consent-icon svg {
+    width: 48px;
+    height: 48px;
+    opacity: 0.9;
+}
+
+/* ========================================
+   Text
+   ======================================== */
+
+.embed-consent-text {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--embed-consent-text);
+    margin: 0 0 1.5rem 0;
+}
+
+.embed-consent-text strong {
+    display: block;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: var(--embed-consent-text);
+}
+
+.embed-consent-privacy-link {
+    color: var(--embed-consent-button-bg);
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.embed-consent-privacy-link:hover {
+    color: var(--embed-consent-button-hover-bg);
+}
+
+/* ========================================
+   Actions (Button and Checkbox)
+   ======================================== */
+
+.embed-consent-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* ========================================
+   Button
+   ======================================== */
+
+.embed-consent-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--embed-consent-button-text);
+    background-color: var(--embed-consent-button-bg);
+    border: none;
+    border-radius: calc(var(--embed-consent-radius) * 0.8);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    min-width: 150px;
+}
+
+.embed-consent-button:hover,
+.embed-consent-button:focus {
+    background-color: var(--embed-consent-button-hover-bg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    transform: translateY(-1px);
+}
+
+.embed-consent-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.embed-consent-button:focus {
+    outline: 2px solid var(--embed-consent-button-bg);
+    outline-offset: 2px;
+}
+
+/* ========================================
+   Checkbox
+   ======================================== */
+
+.embed-consent-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--embed-consent-text-muted);
+    user-select: none;
+}
+
+.embed-consent-checkbox-input {
+    width: 1.125rem;
+    height: 1.125rem;
+    cursor: pointer;
+    margin: 0;
+    accent-color: var(--embed-consent-button-bg);
+}
+
+.embed-consent-checkbox-label {
+    cursor: pointer;
+    line-height: 1.4;
+}
+
+.embed-consent-checkbox:hover .embed-consent-checkbox-label {
+    color: var(--embed-consent-text);
+}
+
+/* ========================================
+   No-JavaScript Fallback
+   ======================================== */
+
+.embed-consent-noscript {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    padding: 2rem;
+    background-color: var(--embed-consent-bg);
+    border-radius: var(--embed-consent-radius);
+    color: var(--embed-consent-text);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 15;
+}
+
+.embed-consent-noscript a {
+    color: var(--embed-consent-button-bg);
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.embed-consent-noscript a:hover {
+    color: var(--embed-consent-button-hover-bg);
+}
+
+/* ========================================
+   Error State
+   ======================================== */
+
+.embed-consent-error {
+    font-family: system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+}
+
+.embed-consent-error code {
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+/* ========================================
+   Responsive Adjustments
+   ======================================== */
+
+@media (max-width: 640px) {
+    .embed-consent-content {
+        padding: 1.5rem 1rem;
+    }
+
+    .embed-consent-text {
+        font-size: 0.875rem;
+    }
+
+    .embed-consent-text strong {
+        font-size: 1rem;
+    }
+
+    .embed-consent-button {
+        padding: 0.625rem 1.5rem;
+        font-size: 0.9375rem;
+        min-width: 120px;
+    }
+
+    .embed-consent-icon svg {
+        width: 40px;
+        height: 40px;
+    }
+
+    .embed-consent-checkbox {
+        font-size: 0.8125rem;
+    }
+}
+
+/* ========================================
+   Reduced Motion Support
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    .embed-consent-iframe,
+    .embed-consent-button {
+        transition: none;
+    }
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+
+@media print {
+    .embed-consent-overlay {
+        display: none;
+    }
+
+    .embed-consent-wrapper {
+        border: 1px solid #ccc;
+    }
+
+    .embed-consent-wrapper::after {
+        content: "[Embedded content]";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #666;
+        font-size: 1rem;
+    }
+}
