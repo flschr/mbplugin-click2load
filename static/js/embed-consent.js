@@ -302,11 +302,6 @@
         wrapper.style.setProperty('--aspect-ratio-padding', aspectRatio + '%');
         wrapper.style.setProperty('--iframe-aspect-ratio', width + ' / ' + height);
 
-        // Store explicit height if specified
-        if (heightAttr) {
-            wrapper.style.setProperty('--iframe-height', heightAttr + (heightAttr.match(/^\d+$/) ? 'px' : ''));
-        }
-
         // Store original src and remove it
         iframe.dataset.consentSrc = src;
         iframe.removeAttribute('src');
