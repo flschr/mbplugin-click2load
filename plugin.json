@@ -1,33 +1,7 @@
 {
   "name": "mbplugin-click2load",
   "title": "Click-2-Load Privacy Plugin",
-  "description": "Privacy-first plugin that automatically adds consent overlays to all iframes on your website.",
+  "description": "Privacy-first plugin that automatically adds consent overlays to all iframes on your website. Zero configuration required - just install and it works!",
   "author": "René Fischer",
-  "version": "2.1.1",
-  "fields": [
-    {
-      "field": "params.embedConsent.enableLocalStorage",
-      "label": "Enable LocalStorage",
-      "type": "boolean",
-      "default": true
-    },
-    {
-      "field": "params.embedConsent.showAlwaysAllowOption",
-      "label": "Show 'Always allow' checkbox",
-      "type": "boolean",
-      "default": true
-    },
-    {
-      "field": "params.embedConsent.language",
-      "label": "Language (en/de, leave empty for auto-detect)",
-      "type": "string",
-      "default": ""
-    },
-    {
-      "field": "params.embedConsent.privacyPolicyUrl",
-      "label": "Privacy policy URL",
-      "type": "string",
-      "default": ""
-    }
-  ]
+  "version": "2.2.0"
 }
