@@ -264,10 +264,14 @@
         const height = iframe.height || iframe.offsetHeight || 360;
         const aspectRatio = (height / width) * 100;
         wrapper.style.setProperty('--aspect-ratio-padding', aspectRatio + '%');
+        wrapper.style.setProperty('--iframe-aspect-ratio', width + ' / ' + height);
 
         // Store original src and remove it
         iframe.dataset.consentSrc = src;
         iframe.removeAttribute('src');
+
+        // Add iframe class for styling
+        iframe.classList.add('embed-consent-iframe');
 
         // Insert wrapper before iframe
         iframe.parentNode.insertBefore(wrapper, iframe);
