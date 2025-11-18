@@ -34,60 +34,46 @@
 </style>
 <noscript>
     <style>
-        /* Global noscript warning when JavaScript is disabled */
-        .embed-consent-noscript-warning {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            border-radius: 0.5rem;
-            padding: 1rem 1.25rem;
-            margin: 1.5rem auto;
-            max-width: 42rem;
-            font-size: 0.875rem;
-            line-height: 1.6;
-            color: #856404;
-            font-family: system-ui, -apple-system, sans-serif;
+        /* Style iframes to show blocked state visually at their original position */
+        iframe:not(.no-consent):not([data-no-consent]) {
+            display: block !important;
+            opacity: 0.15 !important;
+            pointer-events: none !important;
+            filter: grayscale(100%) blur(3px) !important;
+            border: 3px dashed #ffc107 !important;
+            background: #fff3cd !important;
+            min-height: 200px !important;
+            position: relative !important;
+            box-sizing: border-box !important;
+            margin: 1rem 0 !important;
         }
 
-        .embed-consent-noscript-warning strong {
-            display: block;
-            font-size: 0.95rem;
-            margin-bottom: 0.5rem;
-            color: #664d03;
-        }
-
-        /* Show warning only when iframe is present on page */
-        body:has(iframe:not(.no-consent):not([data-no-consent])) .embed-consent-noscript-warning {
-            display: block;
-        }
-
-        /* Hide by default (only show if iframes present) */
-        .embed-consent-noscript-warning {
-            display: none;
-        }
-
-        /* Fallback for browsers without :has() support - show warning always */
-        @supports not (selector(:has(*))) {
-            .embed-consent-noscript-warning {
-                display: block;
-            }
+        /* Create a visual striped pattern overlay on each blocked iframe */
+        iframe:not(.no-consent):not([data-no-consent])::before {
+            content: '' !important;
+            display: block !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            background: repeating-linear-gradient(
+                45deg,
+                rgba(255, 193, 7, 0.1),
+                rgba(255, 193, 7, 0.1) 10px,
+                rgba(255, 193, 7, 0.2) 10px,
+                rgba(255, 193, 7, 0.2) 20px
+            ) !important;
+            z-index: 1 !important;
         }
 
         @media (prefers-color-scheme: dark) {
-            .embed-consent-noscript-warning {
-                background: #3d3500;
-                border-color: #ffc107;
-                color: #ffc107;
-            }
-
-            .embed-consent-noscript-warning strong {
-                color: #ffdb4d;
+            iframe:not(.no-consent):not([data-no-consent]) {
+                background: #3d3500 !important;
+                border-color: #ffc107 !important;
             }
         }
     </style>
-    <div class="embed-consent-noscript-warning">
-        <strong>JavaScript required</strong>
-        Embedded content (YouTube, Vimeo, Maps, etc.) is not displayed on this page because JavaScript is disabled. These external services require JavaScript to function.
-    </div>
 </noscript>
 <script>
     // CRITICAL: Remove the noscript fallback styles IMMEDIATELY when JavaScript IS available
