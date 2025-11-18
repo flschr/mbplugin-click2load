@@ -183,8 +183,16 @@
         border: 2px dashed rgba(0, 0, 0, 0.2);
         border-radius: 0.5rem;
         margin: 1rem 0;
-        /* iframe src is already blocked by early blocker when JS is enabled */
-        /* When JS is disabled, iframe loads but shows empty placeholder */
+        cursor: pointer;
+        position: relative;
+        /* When JS is disabled, iframe keeps its src and is clickable */
+        /* Clicking opens the embed in the current context */
+    }
+
+    /* Add a visual hint that the box is clickable */
+    iframe:not(.no-consent):not([data-no-consent]):hover {
+        background: rgba(0, 0, 0, 0.08);
+        border-color: rgba(0, 0, 0, 0.3);
     }
 
     /* Global notice at the top explaining the empty boxes */
@@ -216,6 +224,11 @@
             background: rgba(255, 255, 255, 0.05);
             border-color: rgba(255, 255, 255, 0.2);
         }
+
+        iframe:not(.no-consent):not([data-no-consent]):hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
     }
 
     @media (max-width: 640px) {
@@ -238,11 +251,11 @@
     <div class="embed-noscript-global-notice">
         <strong>JavaScript erforderlich</strong><br>
         Eingebettete Inhalte (YouTube, ARTE, Karten, etc.) benötigen JavaScript zum Laden.<br>
-        Bitte aktivieren Sie JavaScript in Ihren Browser-Einstellungen.
+        <strong>Klicken Sie auf eine graue Box unten, um den Inhalt direkt zu öffnen.</strong>
         <hr style="margin: 1rem 0; border: none; border-top: 1px solid rgba(0,0,0,0.1);">
         <strong>JavaScript Required</strong><br>
         Embedded content (YouTube, ARTE, Maps, etc.) requires JavaScript to load.<br>
-        Please enable JavaScript in your browser settings.
+        <strong>Click on a gray box below to open the content directly.</strong>
     </div>
 </noscript>
 
