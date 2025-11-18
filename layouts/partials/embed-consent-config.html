@@ -262,6 +262,17 @@
         }
     }
 </style>
+<script>
+    // CRITICAL: Remove the noscript fallback styles IMMEDIATELY when JavaScript IS available
+    // This must run synchronously right after the style tag to prevent FOUC (Flash of Unstyled Content)
+    // and ensure iframes don't briefly show as dimmed boxes
+    (function() {
+        var style = document.getElementById('embed-consent-noscript-fallback');
+        if (style && style.parentNode) {
+            style.parentNode.removeChild(style);
+        }
+    })();
+</script>
 
 {{- /*
     Global notice for when JavaScript is disabled
@@ -278,14 +289,3 @@
         <strong>Click on a gray box below to open the content directly.</strong>
     </div>
 </noscript>
-
-<script>
-    // Remove the noscript fallback styles immediately when JavaScript IS available
-    // This ensures the styles only apply when JS is truly disabled
-    (function() {
-        var style = document.getElementById('embed-consent-noscript-fallback');
-        if (style && style.parentNode) {
-            style.parentNode.removeChild(style);
-        }
-    })();
-</script>
