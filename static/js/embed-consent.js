@@ -4,14 +4,21 @@
  * Automatically detects and wraps all iframes with consent overlay.
  * No manual shortcode usage required - works with existing iframes!
  *
- * @version 2.2.1
+ * @version 2.3.0
+ *
+ * Edge Cases Handled:
+ * - Prerendering (Chrome Speculation Rules)
+ * - Page Visibility (hidden tabs, mobile scenarios)
+ * - Print Preview (beforeprint/afterprint)
+ * - bfcache & Pull-to-Refresh
+ * - Service Worker cache loads
  */
 
 (function() {
     'use strict';
 
     // Constants
-    const VERSION = '2.2.1';
+    const VERSION = '2.3.0';
     const STORAGE_KEY = 'embedConsentAlwaysAllow';
     const DEBOUNCE_DELAY = 150; // ms
     const DEFAULT_ASPECT_RATIO = 56.25; // 16:9 in percentage
@@ -22,6 +29,11 @@
 
     // Cache configuration to avoid repeated DOM queries
     let cachedConfig = null;
+
+    // Track page state for edge cases
+    let isPageVisible = !document.hidden;
+    let isPrerendering = document.prerendering || false;
+    let isPrinting = false;
 
     // Default configuration
     const DEFAULT_CONFIG = {
@@ -523,6 +535,34 @@
             return;
         }
 
+        // Edge Case: Don't load if page is being prerendered
+        // Wait until page is actually shown to user
+        if (isPrerendering) {
+            // Store for later loading when prerender completes
+            iframe.dataset.pendingLoad = 'true';
+            wrapper.dataset.pendingLoad = 'true';
+            return;
+        }
+
+        // Edge Case: Don't load if page is hidden (tab in background)
+        // This prevents background loading and saves resources
+        if (!isPageVisible) {
+            // Store for later loading when page becomes visible
+            iframe.dataset.pendingLoad = 'true';
+            wrapper.dataset.pendingLoad = 'true';
+            return;
+        }
+
+        // Edge Case: Don't auto-load during print preview
+        // Let browser handle existing iframe state
+        if (isPrinting) {
+            return;
+        }
+
+        // Clear pending load flag if set
+        delete iframe.dataset.pendingLoad;
+        delete wrapper.dataset.pendingLoad;
+
         // Restore src
         iframe.src = src;
 
@@ -533,6 +573,26 @@
         const overlay = wrapper.querySelector('.embed-consent-overlay');
         if (overlay) {
             overlay.style.display = 'none';
+        }
+    }
+
+    /**
+     * Process pending iframe loads
+     * Called when page becomes visible or prerendering completes
+     */
+    function processPendingLoads() {
+        // Don't process if conditions aren't met
+        if (isPrerendering || !isPageVisible || isPrinting) {
+            return;
+        }
+
+        const pendingWrappers = document.querySelectorAll('.embed-consent-wrapper[data-pending-load="true"]');
+
+        for (const wrapper of pendingWrappers) {
+            const iframe = wrapper.querySelector('iframe[data-pending-load="true"]');
+            if (iframe && iframe.dataset.consentSrc) {
+                loadIframe(wrapper, iframe);
+            }
         }
     }
 
@@ -746,12 +806,64 @@
         }
     }
 
-    // Handle bfcache (back/forward cache) restoration
-    // This prevents iframes from auto-loading when navigating back
+    /**
+     * Edge Case: Handle Prerendering
+     * Chrome Speculation Rules can prerender pages before user clicks
+     * We must wait until page is actually shown to load iframes
+     */
+    if (document.prerendering) {
+        document.addEventListener('prerenderingchange', function() {
+            isPrerendering = false;
+            // Process any iframes that were waiting for prerender to complete
+            processPendingLoads();
+        }, { once: true });
+    }
+
+    /**
+     * Edge Case: Handle Page Visibility Changes
+     * Prevents iframe loading when tab is in background
+     * Also handles mobile pull-to-refresh scenarios
+     */
+    document.addEventListener('visibilitychange', function() {
+        const wasVisible = isPageVisible;
+        isPageVisible = !document.hidden;
+
+        // If page just became visible, process pending loads
+        if (!wasVisible && isPageVisible) {
+            processPendingLoads();
+        }
+    });
+
+    /**
+     * Edge Case: Handle Print Preview
+     * Prevents unwanted iframe loading during print
+     * Some browsers re-initialize iframes in print preview
+     */
+    window.addEventListener('beforeprint', function() {
+        isPrinting = true;
+    });
+
+    window.addEventListener('afterprint', function() {
+        isPrinting = false;
+        // Process any pending loads after print is done
+        processPendingLoads();
+    });
+
+    /**
+     * Edge Case: Handle bfcache (back/forward cache) restoration
+     * This prevents iframes from auto-loading when navigating back
+     * Also handles mobile pull-to-refresh in combination with visibilitychange
+     */
     window.addEventListener('pageshow', function(event) {
         if (event.persisted) {
             // Page was restored from bfcache (back/forward navigation)
             handleBfcacheRestore();
+
+            // After restoring, process pending loads if conditions are met
+            // This handles edge cases where bfcache + visibility state interact
+            setTimeout(function() {
+                processPendingLoads();
+            }, 50);
         }
     });
 
