@@ -70,6 +70,7 @@ The plugin handles the no-JavaScript scenario gracefully:
 ### Without JavaScript:
 - ℹ️ **Iframes are blocked with an informative notice**
 - ℹ️ **Clear message**: "JavaScript is required to load embedded content"
+- 🔗 **Direct links displayed**: The original URL is shown so users can copy and open it directly
 - ℹ️ **Multi-language support**: German/English based on page language (`html[lang]` attribute)
 - ℹ️ **Rationale**: External services (YouTube, ARTE, Maps, etc.) require JavaScript anyway
 - ✅ **Better UX**: Prevents partially loaded, non-functional embeds
@@ -82,7 +83,7 @@ External embedded services themselves require JavaScript to function:
 - Google Maps/OSM won't be interactive without JS
 - Komoot tours won't load without JS
 
-Showing a clear notice is more user-friendly than displaying broken iframes.
+Showing a clear notice with the direct link is more user-friendly than displaying broken iframes. Users can copy the URL and open it directly in their browser to access the content.
 
 **Exclude iframes from blocking:** Use `class="no-consent"` on iframes that work without JavaScript.
 

@@ -80,7 +80,7 @@
 
     /* This gets removed by JavaScript, so it only applies when JS is disabled */
     iframe:not(.no-consent):not([data-no-consent])::before {
-        content: '⚠️  JavaScript is required to load embedded content from external services (YouTube, ARTE, Maps, etc.)';
+        content: '⚠️  JavaScript is required to load embedded content from external services (YouTube, ARTE, Maps, etc.)\A\ADirect link: ' attr(data-consent-src) '\A(Copy and paste this link in your browser)';
         position: absolute;
         top: 0;
         left: 0;
@@ -98,6 +98,8 @@
         line-height: 1.6;
         color: inherit;
         z-index: 10;
+        white-space: pre-wrap;
+        word-break: break-all;
     }
 
     /* German version for German-speaking users */
@@ -105,7 +107,7 @@
     html[lang="de-DE"] iframe:not(.no-consent):not([data-no-consent])::before,
     html[lang="de-AT"] iframe:not(.no-consent):not([data-no-consent])::before,
     html[lang="de-CH"] iframe:not(.no-consent):not([data-no-consent])::before {
-        content: '⚠️  JavaScript wird benötigt, um eingebettete Inhalte von externen Diensten (YouTube, ARTE, Karten, etc.) zu laden.';
+        content: '⚠️  JavaScript wird benötigt, um eingebettete Inhalte von externen Diensten (YouTube, ARTE, Karten, etc.) zu laden.\A\ADirekter Link: ' attr(data-consent-src) '\A(Kopieren Sie diesen Link und öffnen Sie ihn im Browser)';
     }
 
     /* Hide the actual iframe content */
