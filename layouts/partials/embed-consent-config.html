@@ -96,3 +96,44 @@
     };
 })();
 </script>
+
+{{- /*
+    Fallback styling for iframes when JavaScript is disabled
+    Applies the same responsive styling as with JS enabled
+*/ -}}
+<noscript>
+    <style>
+        /* Match plugin styling for iframes (no-JS fallback) */
+        iframe {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            border: 0;
+            border-radius: var(--embed-consent-radius, 0.5rem);
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        /* Responsive aspect ratio (matches plugin behavior) */
+        @supports (aspect-ratio: 16 / 9) {
+            iframe {
+                aspect-ratio: 16 / 9;
+                height: auto;
+            }
+        }
+
+        /* Fallback for older browsers */
+        @supports not (aspect-ratio: 16 / 9) {
+            iframe {
+                min-height: 400px;
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            iframe {
+                margin: 0.75rem 0;
+            }
+        }
+    </style>
+</noscript>
