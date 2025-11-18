@@ -17,17 +17,17 @@ A privacy-first plugin that automatically adds consent overlays to all iframes o
 
 1. **Install the plugin** via Micro.blog's plugin interface
 
-2. **Add to your custom theme** (`layouts/partials/head.html` or `layouts/_default/baseof.html`):
+2. **Add to your custom theme**:
 
+**In `layouts/partials/head.html`:**
 ```html
-<head>
-    {{ partial "embed-consent-config.html" . }}
-    <link rel="stylesheet" href="{{ "css/embed-consent.css" | relURL }}">
-</head>
-<body>
-    {{ block "main" . }}{{ end }}
-    <script src="{{ "js/embed-consent.js" | relURL }}"></script>
-</body>
+{{ partial "embed-consent-config.html" . }}
+<link rel="stylesheet" href="{{ "css/embed-consent.css" | relURL }}">
+```
+
+**In `layouts/partials/footer.html`:**
+```html
+<script src="{{ "js/embed-consent.js" | relURL }}"></script>
 ```
 
 That's it! No configuration needed. The plugin works with sensible defaults:
