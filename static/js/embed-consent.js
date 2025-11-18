@@ -4,14 +4,14 @@
  * Automatically detects and wraps all iframes with consent overlay.
  * No manual shortcode usage required - works with existing iframes!
  *
- * @version 2.2.0
+ * @version 2.2.1
  */
 
 (function() {
     'use strict';
 
     // Constants
-    const VERSION = '2.2.0';
+    const VERSION = '2.2.1';
     const STORAGE_KEY = 'embedConsentAlwaysAllow';
     const DEBOUNCE_DELAY = 150; // ms
     const DEFAULT_ASPECT_RATIO = 56.25; // 16:9 in percentage
@@ -668,6 +668,42 @@
     };
 
     /**
+     * Handle bfcache restore (back/forward navigation)
+     * Reset loaded iframes to consent state if no persistent consent is given
+     */
+    function handleBfcacheRestore() {
+        const config = getConfig();
+
+        // If user has given persistent consent, allow all iframes to stay loaded
+        if (config.enableLocalStorage && getStoredConsent()) {
+            return;
+        }
+
+        // Otherwise, reset all active iframes back to consent state
+        const wrappers = document.querySelectorAll('.embed-consent-wrapper.embed-consent-active');
+
+        for (const wrapper of wrappers) {
+            const iframe = wrapper.querySelector('iframe');
+            const overlay = wrapper.querySelector('.embed-consent-overlay');
+
+            if (!iframe) continue;
+
+            // Remove the active class
+            wrapper.classList.remove('embed-consent-active');
+
+            // Block the iframe again by removing src
+            if (iframe.src && iframe.dataset.consentSrc) {
+                iframe.removeAttribute('src');
+            }
+
+            // Show the overlay again
+            if (overlay) {
+                overlay.style.display = '';
+            }
+        }
+    }
+
+    /**
      * Initialize plugin
      */
     function initialize() {
@@ -709,6 +745,15 @@
             });
         }
     }
+
+    // Handle bfcache (back/forward cache) restoration
+    // This prevents iframes from auto-loading when navigating back
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            // Page was restored from bfcache (back/forward navigation)
+            handleBfcacheRestore();
+        }
+    });
 
     // Start when DOM is ready
     if (document.readyState === 'loading') {
