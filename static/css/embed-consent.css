@@ -372,11 +372,30 @@
    No-JavaScript Fallback
    ======================================== */
 
+/* Wrapper created by early blocker for no-JS fallback */
+.embed-consent-nojs-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    background-color: var(--embed-consent-overlay-bg);
+    border-radius: var(--embed-consent-radius);
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hide iframes by default (no-JS scenario) */
+.embed-consent-nojs-wrapper iframe {
+    display: none;
+}
+
+/* Show iframes only when JS is enabled */
+html.js-enabled .embed-consent-nojs-wrapper iframe {
+    display: block;
+}
+
 .embed-consent-noscript {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     text-align: center;
     padding: 2rem;
     background-color: var(--embed-consent-bg);
@@ -387,7 +406,14 @@
     max-width: 400px;
     width: 90%;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    z-index: 15;
+}
+
+.embed-consent-noscript p {
+    margin: 0 0 1rem 0;
+}
+
+.embed-consent-noscript p:last-child {
+    margin-bottom: 0;
 }
 
 .embed-consent-noscript a {

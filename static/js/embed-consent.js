@@ -454,6 +454,15 @@
             }
         }
 
+        // Check if iframe is already in a no-JS wrapper from early blocker
+        const noJsWrapper = iframe.closest('.embed-consent-nojs-wrapper');
+        if (noJsWrapper) {
+            // Remove the no-JS wrapper since we'll create the proper wrapper
+            const parent = noJsWrapper.parentNode;
+            parent.insertBefore(iframe, noJsWrapper);
+            noJsWrapper.remove();
+        }
+
         // Check for src in multiple places:
         // 1. iframe.src - normal src attribute
         // 2. iframe.dataset.src - data-src attribute (lazy loading)
