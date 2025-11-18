@@ -55,11 +55,3 @@ To exclude certain iframes from consent:
 ```html
 <iframe src="..." class="no-consent"></iframe>
 ```
-
-## License
-
-See [LICENSE](LICENSE) file.
-
----
-
-**Version**: 2.2.0 - Zero configuration, just works!
