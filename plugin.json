@@ -1,7 +1,7 @@
 {
   "name": "mbplugin-click2load",
   "title": "Click-2-Load Privacy Plugin",
-  "description": "Privacy-first plugin that automatically adds consent overlays to all iframes on your website.",
+  "description": "Privacy-first plugin that automatically adds consent overlays to all iframes on your website. Progressive enhancement with graceful no-JS fallback.",
   "author": "René Fischer",
-  "version": "2.2.1"
+  "version": "2.3.0"
 }

@@ -1,0 +1,86 @@
+{{- /*
+    Embed Consent - NoScript Fallback Styling
+
+    This partial provides fallback styling for iframes when JavaScript is disabled.
+    Include this in your <head> section for better accessibility.
+
+    Usage in baseof.html or head.html:
+    {{ partial "embed-consent-noscript.html" . }}
+
+    What it does:
+    - Makes iframes responsive (full width, 16:9 aspect ratio)
+    - Adds nice border radius and spacing
+    - Shows a friendly info message that JS is disabled
+    - Supports dark mode
+*/ -}}
+<noscript>
+    <style>
+        /* Style iframes that aren't wrapped by the plugin (no-JS fallback) */
+        iframe {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            border: 0;
+            border-radius: var(--embed-consent-radius, 0.5rem);
+            background-color: #f5f5f5;
+            margin: 1rem 0;
+        }
+
+        /* Responsive aspect ratio for video embeds */
+        @supports (aspect-ratio: 16 / 9) {
+            iframe {
+                aspect-ratio: 16 / 9;
+                height: auto;
+            }
+        }
+
+        /* Fallback for older browsers without aspect-ratio support */
+        @supports not (aspect-ratio: 16 / 9) {
+            iframe {
+                min-height: 400px;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            iframe {
+                background-color: #1a1a1a;
+            }
+        }
+
+        /* Optional: Info message that JS is disabled */
+        body::before {
+            content: "ℹ️ JavaScript ist deaktiviert. Externe Inhalte werden direkt geladen.";
+            display: block;
+            padding: 0.75rem 1rem;
+            margin: 1rem;
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            border-left: 4px solid #1976d2;
+            border-radius: 0.25rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body::before {
+                background-color: #1a237e;
+                color: #90caf9;
+                border-left-color: #42a5f5;
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            iframe {
+                margin: 0.75rem 0;
+            }
+
+            body::before {
+                margin: 0.5rem;
+                padding: 0.5rem 0.75rem;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</noscript>
