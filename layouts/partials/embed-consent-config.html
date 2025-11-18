@@ -11,76 +11,31 @@
     - LocalStorage enabled (remembers user preferences)
     - "Always allow" checkbox shown
     - Auto language detection (de/en based on browser)
+
+    IMPORTANT: JavaScript is REQUIRED for this plugin to work.
+    Without JavaScript, iframes will load normally without consent protection.
 */ -}}
 
 {{- /*
     CRITICAL: Prevent iframes from loading BEFORE consent
     This script runs synchronously in <head> to intercept iframes
-    BEFORE the browser starts loading their src attributes
-*/ -}}
+    BEFORE the browser starts loading their src attributes.
 
-{{- /* No-JS Fallback: Hide all iframes when JavaScript is disabled */ -}}
-<noscript>
-    <style>
-        /* Hide all iframes when JS is disabled */
-        iframe:not(.no-consent):not([data-no-consent]) {
-            display: none !important;
-        }
-        /* Show a global notice at the top of the page */
-        body::before {
-            content: "⚠️  Eingebettete Inhalte (YouTube, Maps, etc.) können ohne JavaScript nicht angezeigt werden. / Embedded content cannot be displayed without JavaScript.";
-            display: block;
-            background-color: #fff3cd;
-            border: 1px solid #ffc107;
-            border-radius: 0.5rem;
-            padding: 1rem 1.5rem;
-            margin: 1rem auto;
-            max-width: 800px;
-            font-family: system-ui, -apple-system, sans-serif;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            color: #856404;
-            text-align: center;
-        }
-        @media (prefers-color-scheme: dark) {
-            body::before {
-                background-color: #332701;
-                border-color: #664d03;
-                color: #ffecb5;
-            }
-        }
-    </style>
-</noscript>
+    This only works with JavaScript enabled. There is no way to prevent
+    iframe loading with pure CSS/HTML.
+*/ -}}
 
 <script>
 (function() {
     'use strict';
 
-    // Mark document as JS-enabled (for no-JS fallback CSS)
-    document.documentElement.classList.add('js-enabled');
-
     // Store observer reference for cleanup
     var earlyBlockerObserver = null;
 
-    // Get translations based on browser language
-    function getNoScriptText() {
-        var lang = (navigator.language || navigator.userLanguage || '').toLowerCase().substring(0, 2);
-        if (lang === 'de') {
-            return {
-                text: 'Dieser eingebettete Inhalt kann ohne JavaScript nicht angezeigt werden.',
-                linkText: 'Inhalt direkt aufrufen'
-            };
-        }
-        return {
-            text: 'This embedded content cannot be displayed without JavaScript.',
-            linkText: 'Open content directly'
-        };
-    }
-
     // Function to block iframe from loading
     function blockIframe(iframe) {
-        // Skip if already wrapped by main plugin or early blocker
-        if (iframe.closest('.embed-consent-wrapper') || iframe.closest('.embed-consent-nojs-wrapper')) {
+        // Skip if already wrapped by main plugin
+        if (iframe.closest('.embed-consent-wrapper')) {
             return;
         }
 
@@ -91,24 +46,6 @@
 
         var src = iframe.getAttribute('src');
         if (src) {
-            // Create wrapper for no-JS fallback
-            var wrapper = document.createElement('div');
-            wrapper.className = 'embed-consent-nojs-wrapper';
-
-            // Create noscript element with fallback message
-            var noscript = document.createElement('noscript');
-            var translations = getNoScriptText();
-            noscript.innerHTML = '<div class="embed-consent-noscript"><p>' +
-                translations.text + '</p><p><a href="' + src + '" target="_blank" rel="noopener">' +
-                translations.linkText + '</a></p></div>';
-
-            // Insert wrapper before iframe
-            iframe.parentNode.insertBefore(wrapper, iframe);
-
-            // Move iframe into wrapper (after noscript)
-            wrapper.appendChild(noscript);
-            wrapper.appendChild(iframe);
-
             // Move src to data-consent-src to prevent loading
             iframe.dataset.consentSrc = src;
             iframe.removeAttribute('src');
