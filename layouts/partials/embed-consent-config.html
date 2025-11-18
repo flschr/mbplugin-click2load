@@ -174,9 +174,11 @@
     We use a wrapper-based approach instead.
 */ -}}
 <style id="embed-consent-noscript-fallback">
-    /* Show iframes as empty placeholder boxes when JavaScript is disabled */
+    /* Show iframes as clickable placeholder boxes when JavaScript is disabled */
     iframe:not(.no-consent):not([data-no-consent]) {
-        display: block !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
         min-height: 300px;
         width: 100%;
         background: rgba(0, 0, 0, 0.05);
@@ -187,12 +189,22 @@
         position: relative;
         /* When JS is disabled, iframe keeps its src and is clickable */
         /* Clicking opens the embed in the current context */
+
+        /* Add text indicator via background SVG */
+        background-image:
+            linear-gradient(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05)),
+            url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200"><rect width="400" height="200" fill="none"/><text x="200" y="80" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="24" fill="%23666" font-weight="600">🔗 Eingebetteter Inhalt</text><text x="200" y="120" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="18" fill="%23888">Klicken zum Öffnen</text></svg>');
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: contain;
+        opacity: 0.5;
     }
 
     /* Add a visual hint that the box is clickable */
     iframe:not(.no-consent):not([data-no-consent]):hover {
-        background: rgba(0, 0, 0, 0.08);
+        background-color: rgba(0, 0, 0, 0.08);
         border-color: rgba(0, 0, 0, 0.3);
+        opacity: 0.8;
     }
 
     /* Global notice at the top explaining the empty boxes */
@@ -219,14 +231,22 @@
     }
 
     @media (prefers-color-scheme: dark) {
-        iframe:not(.no-consent):not([data-no-consent]),
+        iframe:not(.no-consent):not([data-no-consent]) {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+            /* Dark mode SVG with lighter text colors */
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200"><rect width="400" height="200" fill="none"/><text x="200" y="80" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="24" fill="%23ccc" font-weight="600">🔗 Eingebetteter Inhalt</text><text x="200" y="120" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="18" fill="%23aaa">Klicken zum Öffnen</text></svg>');
+        }
+
         .embed-noscript-global-notice {
             background: rgba(255, 255, 255, 0.05);
             border-color: rgba(255, 255, 255, 0.2);
         }
 
         iframe:not(.no-consent):not([data-no-consent]):hover {
-            background: rgba(255, 255, 255, 0.08);
+            background-color: rgba(255, 255, 255, 0.08);
             border-color: rgba(255, 255, 255, 0.3);
         }
     }
