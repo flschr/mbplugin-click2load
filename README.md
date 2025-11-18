@@ -68,22 +68,30 @@ The plugin handles the no-JavaScript scenario gracefully:
 - ✅ User preferences saved (optional)
 
 ### Without JavaScript:
-- ℹ️ **Iframes are blocked with an informative notice**
+- ℹ️ **Labeled placeholder boxes**: Each iframe shows "🔗 Eingebetteter Inhalt / Klicken zum Öffnen"
+- ℹ️ **Direct access**: Click on any placeholder box to open the embedded content directly
+- ℹ️ **Global notice displayed**: A clear explanation appears at the top of the page
 - ℹ️ **Clear message**: "JavaScript is required to load embedded content"
-- 🔗 **Direct links displayed**: The original URL is shown so users can copy and open it directly
-- ℹ️ **Multi-language support**: German/English based on page language (`html[lang]` attribute)
+- ℹ️ **Multi-language support**: German/English bilingual notice
+- ℹ️ **Visual feedback**: Users see WHERE embeds are located and what they can do
+- ℹ️ **Hover effect**: Boxes become more prominent on hover to indicate they're clickable
+- ℹ️ **Text in box**: SVG-based text indicator explains the placeholder (no external dependencies)
 - ℹ️ **Rationale**: External services (YouTube, ARTE, Maps, etc.) require JavaScript anyway
 - ✅ **Better UX**: Prevents partially loaded, non-functional embeds
-- ✅ **Dark mode support** - notice adapts to color scheme
+- ✅ **Dark mode support** - placeholders, text, and notice adapt to color scheme
 - ✅ **Responsive design** - works on all screen sizes
 
-**Why block without JavaScript?**
+**Why show placeholders without JavaScript?**
 External embedded services themselves require JavaScript to function:
 - YouTube videos won't play without JS
 - Google Maps/OSM won't be interactive without JS
 - Komoot tours won't load without JS
 
-Showing a clear notice with the direct link is more user-friendly than displaying broken iframes. Users can copy the URL and open it directly in their browser to access the content.
+Showing labeled, clickable placeholder boxes provides the best experience:
+1. **WHERE** embeds are located (placeholder boxes with text in the content flow)
+2. **WHAT** they are ("Eingebetteter Inhalt" = Embedded Content)
+3. **WHY** they're not loading (global notice explains JS requirement)
+4. **HOW** to access them ("Klicken zum Öffnen" = Click to open directly)
 
 **Exclude iframes from blocking:** Use `class="no-consent"` on iframes that work without JavaScript.
 
