@@ -1,50 +1,144 @@
 {{- /*
-    Embed Consent - NoScript Fallback Styling
+    Embed Consent - NoScript Fallback
 
-    This partial provides fallback styling for iframes when JavaScript is disabled.
+    This partial provides fallback behavior for iframes when JavaScript is disabled.
     Include this in your <head> section for better accessibility.
 
     Usage in baseof.html or head.html:
     {{ partial "embed-consent-noscript.html" . }}
 
     What it does:
-    - Makes iframes responsive (full width, 16:9 aspect ratio)
-    - Applies the same styling as with JavaScript enabled
-    - Adds nice border radius and spacing
+    - Blocks embedded content when JavaScript is disabled
+    - Shows informative message that JavaScript is required
+    - External services (YouTube, ARTE, Maps) need JavaScript anyway
+    - Prevents partially loaded, non-functional iframes
+
+    NOTE: This is a DUPLICATE of the noscript section in embed-consent-config.html
+    Only use this file if you're NOT using embed-consent-config.html
 */ -}}
 <noscript>
     <style>
-        /* Match plugin styling for iframes (no-JS fallback) */
-        iframe {
+        /* Hide iframes when JavaScript is disabled */
+        iframe:not(.no-consent):not([data-no-consent]) {
+            display: none !important;
+        }
+
+        /* Notice styling - matches plugin overlay design */
+        .embed-noscript-notice {
             display: block;
-            width: 100%;
-            max-width: 100%;
-            border: 0;
+            background: rgba(0, 0, 0, 0.05);
+            border: 2px dashed rgba(0, 0, 0, 0.2);
             border-radius: var(--embed-consent-radius, 0.5rem);
-            overflow: hidden;
+            padding: 2rem 1.5rem;
             margin: 1rem 0;
+            text-align: center;
+            color: inherit;
         }
 
-        /* Responsive aspect ratio (matches plugin behavior) */
-        @supports (aspect-ratio: 16 / 9) {
-            iframe {
-                aspect-ratio: 16 / 9;
-                height: auto;
-            }
+        .embed-noscript-notice::before {
+            content: '⚠️';
+            display: block;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.7;
         }
 
-        /* Fallback for older browsers */
-        @supports not (aspect-ratio: 16 / 9) {
-            iframe {
-                min-height: 400px;
-            }
+        .embed-noscript-notice p {
+            margin: 0;
+            line-height: 1.6;
+            opacity: 0.8;
         }
 
         /* Responsive adjustments */
         @media (max-width: 640px) {
-            iframe {
+            .embed-noscript-notice {
+                padding: 1.5rem 1rem;
                 margin: 0.75rem 0;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            .embed-noscript-notice {
+                background: rgba(255, 255, 255, 0.05);
+                border-color: rgba(255, 255, 255, 0.2);
             }
         }
     </style>
 </noscript>
+
+{{- /*
+    Alternative approach: CSS-only solution with ::before pseudo-element
+    This is more reliable and doesn't require manual HTML insertion
+*/ -}}
+<style id="embed-consent-noscript-standalone">
+    /* Only apply when JavaScript is disabled */
+    iframe:not(.no-consent):not([data-no-consent]) {
+        position: relative;
+        min-height: 300px;
+    }
+
+    /* This gets removed by JavaScript, so it only applies when JS is disabled */
+    /* Note: When JS is disabled, the early blocker doesn't run, so src attribute is still present */
+    iframe:not(.no-consent):not([data-no-consent])::before {
+        content: '⚠️  JavaScript is required to load embedded content from external services (YouTube, ARTE, Maps, etc.)\A\ADirect link: ' attr(src) '\A(Copy and paste this link in your browser)';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 2rem;
+        background: rgba(0, 0, 0, 0.05);
+        border: 2px dashed rgba(0, 0, 0, 0.2);
+        border-radius: var(--embed-consent-radius, 0.5rem);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: inherit;
+        z-index: 10;
+        white-space: pre-wrap;
+        word-break: break-all;
+    }
+
+    /* German version for German-speaking users */
+    html[lang="de"] iframe:not(.no-consent):not([data-no-consent])::before,
+    html[lang="de-DE"] iframe:not(.no-consent):not([data-no-consent])::before,
+    html[lang="de-AT"] iframe:not(.no-consent):not([data-no-consent])::before,
+    html[lang="de-CH"] iframe:not(.no-consent):not([data-no-consent])::before {
+        content: '⚠️  JavaScript wird benötigt, um eingebettete Inhalte von externen Diensten (YouTube, ARTE, Karten, etc.) zu laden.\A\ADirekter Link: ' attr(src) '\A(Kopieren Sie diesen Link und öffnen Sie ihn im Browser)';
+    }
+
+    /* Hide the actual iframe content */
+    iframe:not(.no-consent):not([data-no-consent]) {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        iframe:not(.no-consent):not([data-no-consent])::before {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+    }
+
+    @media (max-width: 640px) {
+        iframe:not(.no-consent):not([data-no-consent])::before {
+            padding: 1.5rem 1rem;
+            font-size: 0.9rem;
+        }
+    }
+</style>
+
+<script>
+    // Remove the noscript fallback styles immediately when JavaScript IS available
+    // This ensures the styles only apply when JS is truly disabled
+    (function() {
+        var style = document.getElementById('embed-consent-noscript-standalone');
+        if (style && style.parentNode) {
+            style.parentNode.removeChild(style);
+        }
+    })();
+</script>

@@ -60,7 +60,7 @@ To exclude certain iframes from consent:
 
 ## JavaScript Disabled / Accessibility
 
-The plugin is designed with **progressive enhancement** in mind:
+The plugin handles the no-JavaScript scenario gracefully:
 
 ### With JavaScript Enabled:
 - ✅ Privacy-first: iframes blocked until user consent
@@ -68,10 +68,24 @@ The plugin is designed with **progressive enhancement** in mind:
 - ✅ User preferences saved (optional)
 
 ### Without JavaScript:
-- ✅ **Iframes load normally** - users can see all embedded content
-- ✅ **Same responsive styling applied** via `<noscript>` CSS fallback
-- ✅ **Full accessibility** - screen readers work as expected
-- ✅ **No visual difference** - seamless fallback experience
+- ℹ️ **Iframes are blocked with an informative notice**
+- ℹ️ **Clear message**: "JavaScript is required to load embedded content"
+- 🔗 **Direct links displayed**: The original URL is shown so users can copy and open it directly
+- ℹ️ **Multi-language support**: German/English based on page language (`html[lang]` attribute)
+- ℹ️ **Rationale**: External services (YouTube, ARTE, Maps, etc.) require JavaScript anyway
+- ✅ **Better UX**: Prevents partially loaded, non-functional embeds
+- ✅ **Dark mode support** - notice adapts to color scheme
+- ✅ **Responsive design** - works on all screen sizes
+
+**Why block without JavaScript?**
+External embedded services themselves require JavaScript to function:
+- YouTube videos won't play without JS
+- Google Maps/OSM won't be interactive without JS
+- Komoot tours won't load without JS
+
+Showing a clear notice with the direct link is more user-friendly than displaying broken iframes. Users can copy the URL and open it directly in their browser to access the content.
+
+**Exclude iframes from blocking:** Use `class="no-consent"` on iframes that work without JavaScript.
 
 ### Performance Benefits:
 - 🚀 **Faster page loads** - third-party scripts blocked until needed
@@ -85,9 +99,9 @@ The plugin is designed with **progressive enhancement** in mind:
 
 - ✅ **Embedded content doesn't rank for your site** (it ranks for YouTube/Vimeo/etc.)
 - ✅ **Your main content is unaffected** (text, images remain crawlable)
-- ✅ **Googlebot understands consent mechanisms** (GDPR-compliant overlays are common)
+- ✅ **Googlebot renders JavaScript** (modern search engines execute JS and see consent overlays)
 - ✅ **Performance improvements help SEO** (faster sites rank better)
-- ✅ **Without JS, iframes load normally** (search engines see full content)
+- ✅ **Embedded content is still discoverable** (Googlebot renders the consent overlay and can load iframes)
 
 **Recommendations for better SEO:**
 - Use descriptive `title` attributes on iframes:
