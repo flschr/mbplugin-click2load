@@ -68,22 +68,25 @@ The plugin handles the no-JavaScript scenario gracefully:
 - ✅ User preferences saved (optional)
 
 ### Without JavaScript:
-- ℹ️ **Iframes are completely hidden** (display: none)
-- ℹ️ **Global notice displayed**: A clear, visible message box appears at the top of the page
+- ℹ️ **Empty placeholder boxes**: Iframes appear as styled empty boxes at their original position
+- ℹ️ **Global notice displayed**: A clear explanation appears at the top of the page
 - ℹ️ **Clear message**: "JavaScript is required to load embedded content"
 - ℹ️ **Multi-language support**: German/English bilingual notice
+- ℹ️ **Visual feedback**: Users see WHERE embeds would appear (gray dashed boxes)
 - ℹ️ **Rationale**: External services (YouTube, ARTE, Maps, etc.) require JavaScript anyway
 - ✅ **Better UX**: Prevents partially loaded, non-functional embeds
-- ✅ **Dark mode support** - notice adapts to color scheme
+- ✅ **Dark mode support** - placeholders and notice adapt to color scheme
 - ✅ **Responsive design** - works on all screen sizes
 
-**Why block without JavaScript?**
+**Why show placeholders without JavaScript?**
 External embedded services themselves require JavaScript to function:
 - YouTube videos won't play without JS
 - Google Maps/OSM won't be interactive without JS
 - Komoot tours won't load without JS
 
-Hiding iframes and showing a clear global notice is more user-friendly than displaying broken, non-functional iframes.
+Showing empty placeholder boxes at the iframe position + a global explanation is more user-friendly than displaying broken, non-functional iframes. Users understand:
+1. **WHERE** embeds are located (placeholder boxes in the content flow)
+2. **WHY** they're not loading (global notice explains JS requirement)
 
 **Exclude iframes from blocking:** Use `class="no-consent"` on iframes that work without JavaScript.
 

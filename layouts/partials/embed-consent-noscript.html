@@ -75,29 +75,32 @@
     We use a global notice approach instead.
 */ -}}
 <style id="embed-consent-noscript-standalone">
-    /* Hide iframes completely when JavaScript is disabled */
+    /* Show iframes as empty placeholder boxes when JavaScript is disabled */
     iframe:not(.no-consent):not([data-no-consent]) {
-        display: none !important;
+        display: block !important;
+        min-height: 300px;
+        width: 100%;
+        background: rgba(0, 0, 0, 0.05);
+        border: 2px dashed rgba(0, 0, 0, 0.2);
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+        /* iframe src is already blocked by early blocker when JS is enabled */
+        /* When JS is disabled, iframe loads but shows empty placeholder */
     }
 
-    /* Show a placeholder box where each iframe would be */
-    iframe:not(.no-consent):not([data-no-consent]) + .js-required-notice,
+    /* Global notice at the top explaining the empty boxes */
     .embed-noscript-global-notice {
         display: block;
         background: rgba(0, 0, 0, 0.05);
         border: 2px dashed rgba(0, 0, 0, 0.2);
         border-radius: 0.5rem;
         padding: 2rem 1.5rem;
-        margin: 1rem 0;
+        margin: 2rem auto;
+        max-width: 800px;
         text-align: center;
         color: inherit;
         font-size: 0.95rem;
         line-height: 1.6;
-    }
-
-    .embed-noscript-global-notice {
-        max-width: 800px;
-        margin: 2rem auto;
     }
 
     .embed-noscript-global-notice::before {
@@ -109,7 +112,7 @@
     }
 
     @media (prefers-color-scheme: dark) {
-        iframe:not(.no-consent):not([data-no-consent]) + .js-required-notice,
+        iframe:not(.no-consent):not([data-no-consent]),
         .embed-noscript-global-notice {
             background: rgba(255, 255, 255, 0.05);
             border-color: rgba(255, 255, 255, 0.2);
@@ -117,7 +120,10 @@
     }
 
     @media (max-width: 640px) {
-        iframe:not(.no-consent):not([data-no-consent]) + .js-required-notice,
+        iframe:not(.no-consent):not([data-no-consent]) {
+            min-height: 200px;
+        }
+
         .embed-noscript-global-notice {
             padding: 1.5rem 1rem;
             font-size: 0.9rem;
