@@ -13,29 +13,29 @@ A privacy-first plugin that automatically adds consent overlays to all iframes o
 
 ## Installation
 
-### For Micro.blog
+**Requirements:** Custom theme with access to `layouts/partials/` directory
+
+### Steps:
 
 1. **Install the plugin** via Micro.blog's plugin interface
 
-2. **Add to your custom theme**:
+2. **Add to your theme's `layouts/partials/head.html`:**
+   ```html
+   {{ partial "embed-consent-config.html" . }}
+   {{ partial "embed-consent-noscript.html" . }}
+   <link rel="stylesheet" href="{{ "css/embed-consent.css" | relURL }}">
+   ```
 
-**In `layouts/partials/head.html`:**
-```html
-{{ partial "embed-consent-config.html" . }}
-{{ partial "embed-consent-noscript.html" . }}
-<link rel="stylesheet" href="{{ "css/embed-consent.css" | relURL }}">
-```
+3. **Add to your theme's `layouts/partials/footer.html`:**
+   ```html
+   <script src="{{ "js/embed-consent.js" | relURL }}"></script>
+   ```
 
-**In `layouts/partials/footer.html`:**
-```html
-<script src="{{ "js/embed-consent.js" | relURL }}"></script>
-```
-
-That's it! No configuration needed. The plugin works with sensible defaults:
+That's it! The plugin works with sensible defaults:
 - ✅ LocalStorage enabled (remembers user preferences)
 - ✅ "Always allow" checkbox shown
 - ✅ Auto language detection (German/English based on browser settings)
-- ✅ **NEW:** Graceful fallback styling when JavaScript is disabled
+- ✅ Responsive iframe styling (works with and without JavaScript)
 
 ## Supported Services
 
@@ -69,9 +69,9 @@ The plugin is designed with **progressive enhancement** in mind:
 
 ### Without JavaScript:
 - ✅ **Iframes load normally** - users can see all embedded content
-- ✅ **Responsive styling applied** via `<noscript>` CSS fallback
-- ✅ **Friendly info message** shown to explain direct loading
+- ✅ **Same responsive styling applied** via `<noscript>` CSS fallback
 - ✅ **Full accessibility** - screen readers work as expected
+- ✅ **No visual difference** - seamless fallback experience
 
 ### Performance Benefits:
 - 🚀 **Faster page loads** - third-party scripts blocked until needed
