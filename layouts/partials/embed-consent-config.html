@@ -113,6 +113,63 @@
         display: none !important;
     }
 </style>
+<noscript>
+    <style>
+        /* Global noscript warning when JavaScript is disabled */
+        .embed-consent-noscript-warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 0.5rem;
+            padding: 1rem 1.25rem;
+            margin: 1.5rem auto;
+            max-width: 42rem;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: #856404;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .embed-consent-noscript-warning strong {
+            display: block;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+            color: #664d03;
+        }
+
+        /* Show warning only when iframe is present on page */
+        body:has(iframe:not(.no-consent):not([data-no-consent])) .embed-consent-noscript-warning {
+            display: block;
+        }
+
+        /* Hide by default (only show if iframes present) */
+        .embed-consent-noscript-warning {
+            display: none;
+        }
+
+        /* Fallback for browsers without :has() support - show warning always */
+        @supports not (selector(:has(*))) {
+            .embed-consent-noscript-warning {
+                display: block;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .embed-consent-noscript-warning {
+                background: #3d3500;
+                border-color: #ffc107;
+                color: #ffc107;
+            }
+
+            .embed-consent-noscript-warning strong {
+                color: #ffdb4d;
+            }
+        }
+    </style>
+    <div class="embed-consent-noscript-warning">
+        <strong>JavaScript erforderlich</strong>
+        Eingebettete Inhalte (YouTube, Vimeo, Maps, etc.) werden auf dieser Seite nicht angezeigt, da JavaScript deaktiviert ist. Diese externen Dienste benötigen JavaScript, um zu funktionieren.
+    </div>
+</noscript>
 <script>
     // CRITICAL: Remove the noscript fallback styles IMMEDIATELY when JavaScript IS available
     // This must run synchronously right after the style tag to prevent FOUC (Flash of Unstyled Content)
