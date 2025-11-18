@@ -35,27 +35,6 @@ That's it! No configuration needed. The plugin works with sensible defaults:
 - ✅ "Always allow" checkbox shown
 - ✅ Auto language detection (German/English based on browser settings)
 
-### For Standard Hugo Sites
-
-1. Copy plugin files to your Hugo site:
-   - `layouts/partials/` → your site
-   - `static/` → your site
-
-2. Add to your `layouts/_default/baseof.html`:
-
-```html
-<head>
-    {{ partial "embed-consent-config.html" . }}
-    <link rel="stylesheet" href="{{ "css/embed-consent.css" | relURL }}">
-</head>
-<body>
-    {{ block "main" . }}{{ end }}
-    <script src="{{ "js/embed-consent.js" | relURL }}"></script>
-</body>
-```
-
-That's it! No configuration needed - works out of the box.
-
 ## Supported Services
 
 The plugin automatically detects and displays logos for these services:
