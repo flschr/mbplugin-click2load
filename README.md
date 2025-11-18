@@ -20,10 +20,17 @@ A privacy-first plugin that automatically adds consent overlays to all iframes o
 2. **Add to your custom theme** (`layouts/partials/head.html` or `layouts/_default/baseof.html`):
 
 ```html
-{{ partial "embed-consent-config.html" . }}
+<head>
+    {{ partial "embed-consent-config.html" . }}
+    <link rel="stylesheet" href="{{ "css/embed-consent.css" | relURL }}">
+</head>
+<body>
+    {{ block "main" . }}{{ end }}
+    <script src="{{ "js/embed-consent.js" | relURL }}"></script>
+</body>
 ```
 
-That's it! No configuration needed. The CSS and JavaScript are loaded automatically and the plugin works with sensible defaults:
+That's it! No configuration needed. The plugin works with sensible defaults:
 - ✅ LocalStorage enabled (remembers user preferences)
 - ✅ "Always allow" checkbox shown
 - ✅ Auto language detection (German/English based on browser settings)

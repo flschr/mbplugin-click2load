@@ -178,9 +178,12 @@ Oder:
 Auf Micro.blog:
 
 1. **Plugin installieren** via Plugin-Manager
-2. **Theme anpassen**: Füge `{{ partial "embed-consent-config.html" . }}` zu deinem Theme hinzu (siehe README.md)
+2. **Theme anpassen**: Füge alle 3 Einträge zu deinem Theme hinzu:
+   - `{{ partial "embed-consent-config.html" . }}` im `<head>`
+   - `<link rel="stylesheet" href="{{ "css/embed-consent.css" | relURL }}>` im `<head>`
+   - `<script src="{{ "js/embed-consent.js" | relURL }}"></script>` vor `</body>`
 
-*Hinweis: Bei Micro.blog werden CSS und JS automatisch geladen.*
+*Details siehe README.md und MICROBLOG.md*
 
 ---
 
