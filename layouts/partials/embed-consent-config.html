@@ -98,168 +98,19 @@
 </script>
 
 {{- /*
-    Fallback for iframes when JavaScript is disabled
-    Since embedded services (YouTube, ARTE, Komoot, Maps, etc.) require JavaScript,
-    we hide iframes and show an informative notice instead
-*/ -}}
-<noscript>
-    <style>
-        /* Hide iframes when JavaScript is disabled */
-        iframe:not(.no-consent):not([data-no-consent]) {
-            display: none !important;
-        }
+    Fallback: Hide iframes when JavaScript is disabled
+    This prevents embedded content from loading without consent
 
-        /* Create a notice container for blocked iframes */
-        iframe:not(.no-consent):not([data-no-consent]) + .embed-noscript-notice,
-        body:has(iframe:not(.no-consent):not([data-no-consent])) {
-            /* Allow notice to be positioned */
-        }
+    Since YouTube, Vimeo, Maps, etc. require JavaScript anyway,
+    hiding the iframes is the cleanest solution when JS is disabled.
 
-        /* Notice styling - matches plugin overlay design */
-        .embed-noscript-notice {
-            display: block;
-            background: rgba(0, 0, 0, 0.05);
-            border: 2px dashed rgba(0, 0, 0, 0.2);
-            border-radius: var(--embed-consent-radius, 0.5rem);
-            padding: 2rem 1.5rem;
-            margin: 1rem 0;
-            text-align: center;
-            color: inherit;
-        }
-
-        .embed-noscript-notice::before {
-            content: '⚠️';
-            display: block;
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            opacity: 0.7;
-        }
-
-        /* Language-specific messages using CSS */
-        .embed-noscript-notice p {
-            margin: 0;
-            line-height: 1.6;
-            opacity: 0.8;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 640px) {
-            .embed-noscript-notice {
-                padding: 1.5rem 1rem;
-                margin: 0.75rem 0;
-            }
-        }
-
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-            .embed-noscript-notice {
-                background: rgba(255, 255, 255, 0.05);
-                border-color: rgba(255, 255, 255, 0.2);
-            }
-        }
-    </style>
-
-    {{- /* Insert notice elements after iframes using JavaScript fallback in noscript */ -}}
-    <script>
-        // This won't run, but serves as documentation
-        // Actual implementation requires server-side rendering or manual insertion
-    </script>
-</noscript>
-
-{{- /*
-    Alternative: Hide ALL iframes globally when JS is disabled
-    This is simpler and more reliable than trying to insert notices
-
-    NOTE: iframes don't support ::before/::after pseudo-elements!
-    We use a wrapper-based approach instead.
+    When JS IS enabled, this style block is immediately removed
+    by the script below to prevent FOUC.
 */ -}}
 <style id="embed-consent-noscript-fallback">
-    /* Show iframes as clickable placeholder boxes when JavaScript is disabled */
+    /* Hide iframes when JavaScript is disabled */
     iframe:not(.no-consent):not([data-no-consent]) {
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        min-height: 300px;
-        width: 100%;
-        background: rgba(0, 0, 0, 0.05);
-        border: 2px dashed rgba(0, 0, 0, 0.2);
-        border-radius: 0.5rem;
-        margin: 1rem 0;
-        cursor: pointer;
-        position: relative;
-        /* When JS is disabled, iframe keeps its src and is clickable */
-        /* Clicking opens the embed in the current context */
-
-        /* Add text indicator via background SVG */
-        background-image:
-            linear-gradient(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05)),
-            url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200"><rect width="400" height="200" fill="none"/><text x="200" y="80" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="24" fill="%23666" font-weight="600">🔗 Eingebetteter Inhalt</text><text x="200" y="120" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="18" fill="%23888">Klicken zum Öffnen</text></svg>');
-        background-position: center;
-        background-repeat: no-repeat;
-        background-size: contain;
-        opacity: 0.5;
-    }
-
-    /* Add a visual hint that the box is clickable */
-    iframe:not(.no-consent):not([data-no-consent]):hover {
-        background-color: rgba(0, 0, 0, 0.08);
-        border-color: rgba(0, 0, 0, 0.3);
-        opacity: 0.8;
-    }
-
-    /* Global notice at the top explaining the empty boxes */
-    .embed-noscript-global-notice {
-        display: block;
-        background: rgba(0, 0, 0, 0.05);
-        border: 2px dashed rgba(0, 0, 0, 0.2);
-        border-radius: 0.5rem;
-        padding: 2rem 1.5rem;
-        margin: 2rem auto;
-        max-width: 800px;
-        text-align: center;
-        color: inherit;
-        font-size: 0.95rem;
-        line-height: 1.6;
-    }
-
-    .embed-noscript-global-notice::before {
-        content: '⚠️';
-        display: block;
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
-        opacity: 0.7;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        iframe:not(.no-consent):not([data-no-consent]) {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.2);
-            /* Dark mode SVG with lighter text colors */
-            background-image:
-                linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)),
-                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200"><rect width="400" height="200" fill="none"/><text x="200" y="80" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="24" fill="%23ccc" font-weight="600">🔗 Eingebetteter Inhalt</text><text x="200" y="120" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="18" fill="%23aaa">Klicken zum Öffnen</text></svg>');
-        }
-
-        .embed-noscript-global-notice {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        iframe:not(.no-consent):not([data-no-consent]):hover {
-            background-color: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-    }
-
-    @media (max-width: 640px) {
-        iframe:not(.no-consent):not([data-no-consent]) {
-            min-height: 200px;
-        }
-
-        .embed-noscript-global-notice {
-            padding: 1.5rem 1rem;
-            font-size: 0.9rem;
-        }
+        display: none !important;
     }
 </style>
 <script>
@@ -273,19 +124,3 @@
         }
     })();
 </script>
-
-{{- /*
-    Global notice for when JavaScript is disabled
-    This will be visible at the top of the page
-*/ -}}
-<noscript>
-    <div class="embed-noscript-global-notice">
-        <strong>JavaScript erforderlich</strong><br>
-        Eingebettete Inhalte (YouTube, ARTE, Karten, etc.) benötigen JavaScript zum Laden.<br>
-        <strong>Klicken Sie auf eine graue Box unten, um den Inhalt direkt zu öffnen.</strong>
-        <hr style="margin: 1rem 0; border: none; border-top: 1px solid rgba(0,0,0,0.1);">
-        <strong>JavaScript Required</strong><br>
-        Embedded content (YouTube, ARTE, Maps, etc.) requires JavaScript to load.<br>
-        <strong>Click on a gray box below to open the content directly.</strong>
-    </div>
-</noscript>
