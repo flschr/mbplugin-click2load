@@ -16,124 +16,20 @@
     NOTE: This is a DUPLICATE of the noscript section in embed-consent-config.html
     Only use this file if you're NOT using embed-consent-config.html
 */ -}}
-<noscript>
-    <style>
-        /* Hide iframes when JavaScript is disabled */
-        iframe:not(.no-consent):not([data-no-consent]) {
-            display: none !important;
-        }
-
-        /* Notice styling - matches plugin overlay design */
-        .embed-noscript-notice {
-            display: block;
-            background: rgba(0, 0, 0, 0.05);
-            border: 2px dashed rgba(0, 0, 0, 0.2);
-            border-radius: var(--embed-consent-radius, 0.5rem);
-            padding: 2rem 1.5rem;
-            margin: 1rem 0;
-            text-align: center;
-            color: inherit;
-        }
-
-        .embed-noscript-notice::before {
-            content: '⚠️';
-            display: block;
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            opacity: 0.7;
-        }
-
-        .embed-noscript-notice p {
-            margin: 0;
-            line-height: 1.6;
-            opacity: 0.8;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 640px) {
-            .embed-noscript-notice {
-                padding: 1.5rem 1rem;
-                margin: 0.75rem 0;
-            }
-        }
-
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-            .embed-noscript-notice {
-                background: rgba(255, 255, 255, 0.05);
-                border-color: rgba(255, 255, 255, 0.2);
-            }
-        }
-    </style>
-</noscript>
-
 {{- /*
-    Alternative approach: Global notice instead of per-iframe notices
-    This is more reliable since iframes don't support ::before/::after pseudo-elements
+    Fallback: Hide iframes when JavaScript is disabled
+    This prevents embedded content from loading without consent
 
-    NOTE: iframes don't support ::before/::after pseudo-elements!
-    We use a global notice approach instead.
+    Since YouTube, Vimeo, Maps, etc. require JavaScript anyway,
+    hiding the iframes is the cleanest solution when JS is disabled.
+
+    When JS IS enabled, this style block is immediately removed
+    by the script below to prevent FOUC.
 */ -}}
 <style id="embed-consent-noscript-standalone">
-    /* Compact 2-line placeholder for iframes when JavaScript is disabled */
+    /* Hide iframes when JavaScript is disabled */
     iframe:not(.no-consent):not([data-no-consent]) {
-        display: block !important;
-        height: 3.5em !important;
-        min-height: 3.5em !important;
-        width: 100%;
-        background: #e8e8e8;
-        border: 1px solid #d0d0d0;
-        border-radius: 0.375rem;
-        margin: 0.75rem 0;
-        cursor: pointer;
-        position: relative;
-        padding: 0;
-        /* When JS is disabled, iframe keeps its src and is clickable */
-        /* Clicking opens the embed source directly */
-
-        /* Compact text indicator via background SVG */
-        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 60"><text x="300" y="30" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="%23555" dominant-baseline="middle">Externes Medium benötigt JavaScript • Klicken zum Öffnen der Quelle</text></svg>');
-        background-position: center;
-        background-repeat: no-repeat;
-        background-size: 95% auto;
-    }
-
-    /* Visual feedback on hover */
-    iframe:not(.no-consent):not([data-no-consent]):hover {
-        background-color: #dcdcdc;
-        border-color: #b0b0b0;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        iframe:not(.no-consent):not([data-no-consent]) {
-            background: #2a2a2a;
-            border-color: #444;
-            /* Dark mode SVG with lighter text */
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 60"><text x="300" y="30" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="%23aaa" dominant-baseline="middle">Externes Medium benötigt JavaScript • Klicken zum Öffnen der Quelle</text></svg>');
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: 95% auto;
-        }
-
-        iframe:not(.no-consent):not([data-no-consent]):hover {
-            background-color: #333;
-            border-color: #555;
-        }
-    }
-
-    @media (max-width: 640px) {
-        iframe:not(.no-consent):not([data-no-consent]) {
-            /* Shorter text for mobile */
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 60"><text x="200" y="30" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="%23555" dominant-baseline="middle">JavaScript benötigt • Quelle öffnen</text></svg>');
-            background-size: 98% auto;
-        }
-    }
-
-    @media (max-width: 640px) and (prefers-color-scheme: dark) {
-        iframe:not(.no-consent):not([data-no-consent]) {
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 60"><text x="200" y="30" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="%23aaa" dominant-baseline="middle">JavaScript benötigt • Quelle öffnen</text></svg>');
-            background-size: 98% auto;
-        }
+        display: none !important;
     }
 </style>
 <script>

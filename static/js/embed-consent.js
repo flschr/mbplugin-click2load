@@ -52,6 +52,8 @@
             buttonLabel: 'Load content',
             alwaysAllowLabel: 'Always allow external media on this site',
             learnMore: 'Learn more',
+            noscriptText: 'External content from <strong>{provider}</strong>. Opening this link will transmit data to {provider}.',
+            noscriptLink: 'View content on {provider}',
             providerYouTube: 'YouTube',
             providerVimeo: 'Vimeo',
             providerArte: 'ARTE',
@@ -66,6 +68,8 @@
             buttonLabel: 'Inhalt laden',
             alwaysAllowLabel: 'Externe Medien auf dieser Website immer erlauben',
             learnMore: 'Mehr erfahren',
+            noscriptText: 'Externer Inhalt von <strong>{provider}</strong>. Durch das Öffnen werden Daten an {provider} übertragen.',
+            noscriptLink: 'Inhalt auf {provider} ansehen',
             providerYouTube: 'YouTube',
             providerVimeo: 'Vimeo',
             providerArte: 'ARTE',
@@ -368,6 +372,30 @@
     }
 
     /**
+     * Create noscript fallback HTML
+     */
+    function createNoscriptFallback(src, provider, config, translations) {
+        const providerName = getProviderName(provider, config.language);
+
+        // Build noscript text with provider name
+        const noscriptText = translations.noscriptText.replace(/{provider}/g, providerName);
+        const noscriptLink = translations.noscriptLink.replace(/{provider}/g, providerName);
+
+        return `
+            <noscript>
+                <div class="embed-consent-noscript-fallback">
+                    <p>
+                        ${noscriptText}
+                        <a href="${escapeHtml(src)}" target="_blank" rel="noopener noreferrer" class="embed-consent-noscript-link">
+                            ${escapeHtml(noscriptLink)} →
+                        </a>
+                    </p>
+                </div>
+            </noscript>
+        `;
+    }
+
+    /**
      * Get numeric value from attribute or computed style
      */
     function getNumericValue(value, fallback) {
@@ -497,6 +525,10 @@
         // Add overlay
         const overlayHtml = createOverlay(provider, config, translations);
         wrapper.insertAdjacentHTML('afterbegin', overlayHtml);
+
+        // Add noscript fallback with link to source
+        const noscriptHtml = createNoscriptFallback(src, provider, config, translations);
+        wrapper.insertAdjacentHTML('beforeend', noscriptHtml);
 
         // Get overlay elements
         const overlay = wrapper.querySelector('.embed-consent-overlay');
