@@ -3,5 +3,5 @@
   "title": "Click-2-Load Privacy Plugin",
   "description": "Privacy-first plugin that automatically adds consent overlays to all iframes on your website. Zero configuration required - just install and it works!",
   "author": "René Fischer",
-  "version": "2.2.0"
+  "version": "2.2.1"
 }
