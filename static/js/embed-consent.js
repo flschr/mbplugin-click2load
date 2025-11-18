@@ -4,17 +4,24 @@
  * Automatically detects and wraps all iframes with consent overlay.
  * No manual shortcode usage required - works with existing iframes!
  *
- * @version 2.1.1
+ * @version 2.2.1
  */
 
 (function() {
     'use strict';
 
-    // LocalStorage key for the global preference
+    // Constants
+    const VERSION = '2.2.1';
     const STORAGE_KEY = 'embedConsentAlwaysAllow';
+    const DEBOUNCE_DELAY = 150; // ms
+    const DEFAULT_ASPECT_RATIO = 56.25; // 16:9 in percentage
+    const DEFAULT_ASPECT_RATIO_STRING = '16 / 9';
 
     // Store observer references for cleanup
     let mutationObserver = null;
+
+    // Cache configuration to avoid repeated DOM queries
+    let cachedConfig = null;
 
     // Default configuration
     const DEFAULT_CONFIG = {
@@ -176,9 +183,14 @@
     }
 
     /**
-     * Get configuration from Hugo site params or meta tags
+     * Get configuration from Hugo site params or meta tags (cached)
      */
     function getConfig() {
+        // Return cached config if available
+        if (cachedConfig) {
+            return cachedConfig;
+        }
+
         const config = Object.assign({}, DEFAULT_CONFIG);
 
         // Detect and use browser language as default
@@ -212,6 +224,8 @@
             }
         }
 
+        // Cache the configuration
+        cachedConfig = config;
         return config;
     }
 
@@ -385,46 +399,30 @@
     }
 
     /**
-     * Apply fixed height to wrapper
-     */
-    function applyFixedHeight(wrapper, height) {
-        wrapper.style.setProperty('--fixed-iframe-height', height + 'px');
-        wrapper.classList.add('embed-consent-fixed-height');
-        wrapper.dataset.hasAspectRatio = 'false';
-    }
-
-    /**
-     * Apply dynamic aspect ratio to wrapper
-     */
-    function applyDynamicAspectRatio(wrapper, width, height) {
-        const aspectRatio = (height / width) * 100;
-        wrapper.style.setProperty('--aspect-ratio-padding', aspectRatio + '%');
-        wrapper.style.setProperty('--iframe-aspect-ratio', width + ' / ' + height);
-        wrapper.dataset.hasAspectRatio = 'true';
-    }
-
-    /**
-     * Apply default 16:9 aspect ratio to wrapper
-     */
-    function applyDefaultAspectRatio(wrapper) {
-        wrapper.style.setProperty('--aspect-ratio-padding', '56.25%');
-        wrapper.style.setProperty('--iframe-aspect-ratio', '16 / 9');
-        wrapper.dataset.hasAspectRatio = 'false';
-    }
-
-    /**
      * Configure wrapper aspect ratio based on iframe dimensions
+     * Consolidated function to reduce code duplication
      */
     function configureAspectRatio(wrapper, iframe) {
         const dimensions = calculateDimensions(iframe);
-        const prefersFixedHeight = Boolean(dimensions.height && !dimensions.width);
+        const hasHeight = dimensions.height;
+        const hasWidth = dimensions.width;
 
-        if (prefersFixedHeight) {
-            applyFixedHeight(wrapper, dimensions.height);
-        } else if (dimensions.width && dimensions.height) {
-            applyDynamicAspectRatio(wrapper, dimensions.width, dimensions.height);
+        if (hasHeight && !hasWidth) {
+            // Fixed height mode (e.g., maps)
+            wrapper.style.setProperty('--fixed-iframe-height', dimensions.height + 'px');
+            wrapper.classList.add('embed-consent-fixed-height');
+            wrapper.dataset.hasAspectRatio = 'false';
+        } else if (hasWidth && hasHeight) {
+            // Dynamic aspect ratio from dimensions
+            const aspectRatio = (dimensions.height / dimensions.width) * 100;
+            wrapper.style.setProperty('--aspect-ratio-padding', aspectRatio + '%');
+            wrapper.style.setProperty('--iframe-aspect-ratio', dimensions.width + ' / ' + dimensions.height);
+            wrapper.dataset.hasAspectRatio = 'true';
         } else {
-            applyDefaultAspectRatio(wrapper);
+            // Default 16:9 aspect ratio
+            wrapper.style.setProperty('--aspect-ratio-padding', DEFAULT_ASPECT_RATIO + '%');
+            wrapper.style.setProperty('--iframe-aspect-ratio', DEFAULT_ASPECT_RATIO_STRING);
+            wrapper.dataset.hasAspectRatio = 'false';
         }
     }
 
@@ -545,13 +543,13 @@
         const config = getConfig();
         const iframes = document.querySelectorAll('iframe');
 
-        iframes.forEach(function(iframe) {
+        for (const iframe of iframes) {
             try {
                 wrapIframe(iframe, config);
             } catch (error) {
                 console.error('Failed to wrap iframe:', error);
             }
-        });
+        }
     }
 
     /**
@@ -560,25 +558,25 @@
     function processNewIframes(addedNodes) {
         const config = getConfig();
 
-        addedNodes.forEach(function(node) {
-            if (node.nodeType === 1) { // Element node
-                try {
-                    // Check if the node itself is an iframe
-                    if (node.tagName === 'IFRAME') {
-                        wrapIframe(node, config);
-                    }
-                    // Check if the node contains iframes
-                    else if (node.querySelectorAll) {
-                        const iframes = node.querySelectorAll('iframe');
-                        iframes.forEach(function(iframe) {
-                            wrapIframe(iframe, config);
-                        });
-                    }
-                } catch (error) {
-                    console.error('Failed to wrap iframe:', error);
+        for (const node of addedNodes) {
+            if (node.nodeType !== 1) continue; // Skip non-element nodes
+
+            try {
+                // Check if the node itself is an iframe
+                if (node.tagName === 'IFRAME') {
+                    wrapIframe(node, config);
                 }
+                // Check if the node contains iframes
+                else if (node.querySelectorAll) {
+                    const iframes = node.querySelectorAll('iframe');
+                    for (const iframe of iframes) {
+                        wrapIframe(iframe, config);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to wrap iframe:', error);
             }
-        });
+        }
     }
 
     /**
@@ -666,13 +664,54 @@
         /**
          * Get plugin version
          */
-        version: '2.1.1'
+        version: VERSION
     };
+
+    /**
+     * Handle bfcache restore (back/forward navigation)
+     * Reset loaded iframes to consent state if no persistent consent is given
+     */
+    function handleBfcacheRestore() {
+        const config = getConfig();
+
+        // If user has given persistent consent, allow all iframes to stay loaded
+        if (config.enableLocalStorage && getStoredConsent()) {
+            return;
+        }
+
+        // Otherwise, reset all active iframes back to consent state
+        const wrappers = document.querySelectorAll('.embed-consent-wrapper.embed-consent-active');
+
+        for (const wrapper of wrappers) {
+            const iframe = wrapper.querySelector('iframe');
+            const overlay = wrapper.querySelector('.embed-consent-overlay');
+
+            if (!iframe) continue;
+
+            // Remove the active class
+            wrapper.classList.remove('embed-consent-active');
+
+            // Block the iframe again by removing src
+            if (iframe.src && iframe.dataset.consentSrc) {
+                iframe.removeAttribute('src');
+            }
+
+            // Show the overlay again
+            if (overlay) {
+                overlay.style.display = '';
+            }
+        }
+    }
 
     /**
      * Initialize plugin
      */
     function initialize() {
+        // Cleanup the early blocker observer (from head script) to avoid duplicate observers
+        if (typeof window.__embedConsentCleanupEarlyBlocker === 'function') {
+            window.__embedConsentCleanupEarlyBlocker();
+        }
+
         processAllIframes();
 
         // Watch for new iframes added dynamically (optimized with debouncing)
@@ -681,20 +720,22 @@
             const debouncedHandler = debounce(function(mutations) {
                 const addedNodes = [];
 
-                mutations.forEach(function(mutation) {
-                    mutation.addedNodes.forEach(function(node) {
+                // Collect all added element nodes efficiently
+                for (const mutation of mutations) {
+                    for (const node of mutation.addedNodes) {
                         if (node.nodeType === 1) { // Element node
+                            // Only add if it's an iframe or contains one
                             if (node.tagName === 'IFRAME' || (node.querySelector && node.querySelector('iframe'))) {
                                 addedNodes.push(node);
                             }
                         }
-                    });
-                });
+                    }
+                }
 
                 if (addedNodes.length > 0) {
                     processNewIframes(addedNodes);
                 }
-            }, 150); // 150ms debounce
+            }, DEBOUNCE_DELAY);
 
             mutationObserver = new MutationObserver(debouncedHandler);
 
@@ -704,6 +745,15 @@
             });
         }
     }
+
+    // Handle bfcache (back/forward cache) restoration
+    // This prevents iframes from auto-loading when navigating back
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            // Page was restored from bfcache (back/forward navigation)
+            handleBfcacheRestore();
+        }
+    });
 
     // Start when DOM is ready
     if (document.readyState === 'loading') {

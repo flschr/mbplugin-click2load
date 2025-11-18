@@ -1,65 +1,17 @@
 {{- /*
-    Embed Consent Plugin Configuration Partial
+    Embed Consent Early Blocker
 
-    Include this in your <head> section to configure the plugin via data attributes.
-    The JavaScript will automatically read these configuration values.
+    This script prevents iframes from loading before the user gives consent.
+    Include this in your <head> section BEFORE any content loads.
 
-    Usage in baseof.html:
+    Usage in baseof.html or head.html:
     {{ partial "embed-consent-config.html" . }}
+
+    No configuration needed - the plugin uses sensible defaults:
+    - LocalStorage enabled (remembers user preferences)
+    - "Always allow" checkbox shown
+    - Auto language detection (de/en based on browser)
 */ -}}
-
-{{- /* Support both Micro.blog plugin params AND Hugo config params */ -}}
-{{- /* Try multiple sources for configuration values */ -}}
-{{- $enableLocalStorage := true -}}
-{{- $showAlwaysAllowOption := true -}}
-{{- $language := "" -}}
-{{- $privacyPolicyUrl := "" -}}
-
-{{- /* Try .Site.Params.embedConsent (Hugo config.toml/yaml) */ -}}
-{{- if .Site.Params.embedConsent -}}
-  {{- $enableLocalStorage = .Site.Params.embedConsent.enableLocalStorage | default true -}}
-  {{- $showAlwaysAllowOption = .Site.Params.embedConsent.showAlwaysAllowOption | default true -}}
-  {{- $language = .Site.Params.embedConsent.language | default "" -}}
-  {{- $privacyPolicyUrl = .Site.Params.embedConsent.privacyPolicyUrl | default "" -}}
-{{- else if .Site.Params.params.embedConsent -}}
-  {{- /* Try .Site.Params.params.embedConsent (Micro.blog plugin.json) */ -}}
-  {{- $enableLocalStorage = .Site.Params.params.embedConsent.enableLocalStorage | default true -}}
-  {{- $showAlwaysAllowOption = .Site.Params.params.embedConsent.showAlwaysAllowOption | default true -}}
-  {{- $language = .Site.Params.params.embedConsent.language | default "" -}}
-  {{- $privacyPolicyUrl = .Site.Params.params.embedConsent.privacyPolicyUrl | default "" -}}
-{{- else if index .Site.Params "params.embedConsent.enableLocalStorage" -}}
-  {{- /* Try flat parameter names (alternative Micro.blog format) */ -}}
-  {{- $enableLocalStorage = index .Site.Params "params.embedConsent.enableLocalStorage" | default true -}}
-  {{- $showAlwaysAllowOption = index .Site.Params "params.embedConsent.showAlwaysAllowOption" | default true -}}
-  {{- $language = index .Site.Params "params.embedConsent.language" | default "" -}}
-  {{- $privacyPolicyUrl = index .Site.Params "params.embedConsent.privacyPolicyUrl" | default "" -}}
-{{- end -}}
-
-{{- /* Set data attributes on html element for JavaScript to read */ -}}
-<script>
-(function() {
-    var root = document.documentElement;
-    // Use dataset API (modern approach)
-    root.dataset.embedConsentStorage = '{{ $enableLocalStorage }}';
-    root.dataset.embedConsentAlwaysAllow = '{{ $showAlwaysAllowOption }}';
-    {{- if $language -}}
-    root.dataset.embedConsentLanguage = '{{ $language }}';
-    {{- end -}}
-    {{- if $privacyPolicyUrl -}}
-    root.dataset.embedConsentPrivacyUrl = '{{ $privacyPolicyUrl }}';
-    {{- end -}}
-
-    // Debug: Log configuration to console (can be disabled in production)
-    if (typeof console !== 'undefined' && console.log) {
-        console.log('Embed Consent Config:', {
-            enableLocalStorage: '{{ $enableLocalStorage }}',
-            showAlwaysAllowOption: '{{ $showAlwaysAllowOption }}',
-            language: '{{ $language }}',
-            privacyPolicyUrl: '{{ $privacyPolicyUrl }}'
-        });
-    }
-})();
-</script>
 
 {{- /*
     CRITICAL: Prevent iframes from loading BEFORE consent
@@ -104,7 +56,8 @@
     // This observer ONLY blocks - it doesn't wrap. The main plugin handles wrapping.
     if (typeof MutationObserver !== 'undefined') {
         earlyBlockerObserver = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
+            for (var m = 0; m < mutations.length; m++) {
+                var mutation = mutations[m];
                 // Only check added nodes - more efficient
                 for (var i = 0; i < mutation.addedNodes.length; i++) {
                     var node = mutation.addedNodes[i];
@@ -122,7 +75,7 @@
                         }
                     }
                 }
-            });
+            }
         });
 
         // Start observing - childList only (no attribute watching needed)
@@ -132,17 +85,9 @@
                 subtree: true
             });
         }
-
-        // Process any iframes after DOM is ready
-        document.addEventListener('DOMContentLoaded', function() {
-            var allIframes = document.querySelectorAll('iframe');
-            for (var i = 0; i < allIframes.length; i++) {
-                blockIframe(allIframes[i]);
-            }
-        });
     }
 
-    // Expose cleanup function
+    // Expose cleanup function - called by main plugin when it initializes
     window.__embedConsentCleanupEarlyBlocker = function() {
         if (earlyBlockerObserver) {
             earlyBlockerObserver.disconnect();

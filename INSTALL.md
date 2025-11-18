@@ -85,41 +85,12 @@ Falls du Partials für head/footer verwendest:
 
 ---
 
-## Schritt 3: Konfiguration
+## Schritt 3: Testen (Keine Konfiguration nötig!)
 
-### Option A: TOML (`config.toml`)
-
-```toml
-[params.embedConsent]
-  enableLocalStorage = true
-  showAlwaysAllowOption = true
-  language = "de"  # oder "en"
-  privacyPolicyUrl = "/datenschutz/"
-```
-
-### Option B: YAML (`config.yaml`)
-
-```yaml
-params:
-  embedConsent:
-    enableLocalStorage: true
-    showAlwaysAllowOption: true
-    language: de  # oder "en"
-    privacyPolicyUrl: /datenschutz/
-```
-
-### Minimal-Konfiguration
-
-Nur die Sprache setzen - Rest bleibt auf Defaults:
-
-```toml
-[params.embedConsent]
-  language = "de"
-```
-
----
-
-## Schritt 4: Testen
+Das Plugin funktioniert sofort mit vernünftigen Defaults:
+- ✅ LocalStorage aktiviert (merkt sich User-Präferenzen)
+- ✅ "Immer erlauben" Checkbox wird angezeigt
+- ✅ Automatische Spracherkennung (Deutsch/Englisch basierend auf Browser-Einstellungen)
 
 ### 1. Hugo Server starten
 
@@ -138,12 +109,12 @@ Du solltest sehen:
 ✅ Ein **Consent-Overlay** über dem iframe
 ✅ **Provider-Logo** (YouTube, Vimeo, ARTE)
 ✅ **"Inhalt laden" Button**
-✅ Optional: **"Immer erlauben" Checkbox**
+✅ **"Immer erlauben" Checkbox**
 
 ### 4. Funktionstest
 
 - Klicke "Inhalt laden" → iframe lädt
-- Falls Checkbox vorhanden: Aktiviere sie → Preference wird gespeichert
+- Aktiviere Checkbox → Preference wird gespeichert
 - Seite neu laden → Bei gespeicherter Preference laden iframes automatisch
 
 ---
@@ -154,7 +125,6 @@ Du solltest sehen:
 - [ ] `{{ partial "embed-consent-config.html" . }}` im `<head>`
 - [ ] CSS eingebunden (im `<head>`)
 - [ ] JS eingebunden (vor `</body>`)
-- [ ] Konfiguration in `config.toml` / `config.yaml`
 - [ ] Hugo Server gestartet
 - [ ] Consent-Overlay wird angezeigt
 - [ ] Provider-Logos werden angezeigt (ARTE, YouTube, etc.)
@@ -171,7 +141,6 @@ Du solltest sehen:
 1. Browser DevTools öffnen (F12)
 2. **Console-Tab**: Fehler prüfen
 3. **Network-Tab**: Prüfen ob CSS/JS laden (200 OK)
-4. **Elements-Tab**: Prüfen ob `data-embed-consent-*` Attribute am `<html>` Element sind
 
 ### Problem: Button tut nichts
 
@@ -180,7 +149,7 @@ Du solltest sehen:
 2. Sicherstellen dass `embed-consent.js` geladen ist
 3. Prüfen ob JavaScript-Fehler angezeigt werden
 
-### Problem: Konfiguration wird nicht übernommen
+### Problem: Plugin lädt nicht richtig
 
 **Lösung:**
 1. Hugo Server neu starten (`Ctrl+C`, dann `hugo server` wieder)
@@ -208,11 +177,10 @@ Oder:
 
 Auf Micro.blog:
 
-1. **Plugin-Dateien hochladen** via Plugin-Manager
-2. **Theme anpassen**: Custom CSS/JS über Micro.blog Settings
-3. **Konfiguration**: Via Micro.blog Settings → Custom Parameters
+1. **Plugin installieren** via Plugin-Manager
+2. **Theme anpassen**: Füge `{{ partial "embed-consent-config.html" . }}` zu deinem Theme hinzu (siehe README.md)
 
-*Hinweis: Genaue Schritte können je nach Micro.blog-Setup variieren.*
+*Hinweis: Bei Micro.blog werden CSS und JS automatisch geladen.*
 
 ---
 
@@ -235,33 +203,16 @@ Auf Micro.blog:
 
 ---
 
-## Nächste Schritte
-
-- **Styling anpassen?** → Siehe [README.md → Styling](README.md#styling-und-theme-integration)
-- **Mehr Sprachen?** → Siehe [README.md → Neue Sprachen](README.md#weitere-sprachen-hinzufügen)
-- **Weitere Provider?** → Siehe [README.md → Neue Provider](README.md#neue-provider-hinzufügen)
-
----
-
 ## Schnellreferenz
-
-### Config-Optionen
-
-| Option | Default | Beschreibung |
-|--------|---------|--------------|
-| `enableLocalStorage` | `true` | localStorage für Preferences |
-| `showAlwaysAllowOption` | `true` | "Immer erlauben" Checkbox |
-| `language` | `"en"` | UI-Sprache (`"de"` oder `"en"`) |
-| `privacyPolicyUrl` | `""` | Link zu Datenschutz (optional) |
 
 ### Browser-Funktionen
 
 ```javascript
 // Consent-Status prüfen
-getEmbedConsentStatus()
+window.EmbedConsent.getStatus()
 
 // Consent zurücksetzen
-resetEmbedConsent()
+window.EmbedConsent.reset()
 ```
 
 ### iframes ausschließen
