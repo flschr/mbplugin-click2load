@@ -47,8 +47,8 @@
     // Translations
     const TRANSLATIONS = {
         en: {
-            consentText: 'This embedded content is provided by an external service. By loading this content, data will be transmitted to third parties. The privacy policy of the external service applies.',
-            consentTextWithProvider: 'This embedded content is provided by {provider}. By loading this content, data will be transmitted to {provider}. The privacy policy of {provider} applies.',
+            consentText: 'This content is served by an external service. Loading it may send data to third parties under their privacy policy.',
+            consentTextWithProvider: 'This content is served by {provider}. Loading it may send data to {provider} under their privacy policy.',
             buttonLabel: 'Load content',
             alwaysAllowLabel: 'Always allow external media on this site',
             learnMore: 'Learn more',
@@ -61,8 +61,8 @@
             providerGeneric: 'External Content'
         },
         de: {
-            consentText: 'Dieses eingebettete Medium wird von einem externen Anbieter bereitgestellt. Durch das Laden dieses Inhalts werden Daten an Dritte übertragen. Es gilt die Datenschutzvereinbarung des externen Anbieters.',
-            consentTextWithProvider: 'Dieses eingebettete Medium wird von {provider} bereitgestellt. Durch das Laden dieses Inhalts werden Daten an {provider} übertragen. Es gilt die Datenschutzvereinbarung von {provider}.',
+            consentText: 'Dieses eingebettete Medium stammt von einem externen Anbieter. Beim Laden können Daten an Dritte gemäß deren Datenschutzerklärung übertragen werden.',
+            consentTextWithProvider: 'Dieses eingebettete Medium stammt von {provider}. Beim Laden können Daten an {provider} gemäß deren Datenschutzerklärung übertragen werden.',
             buttonLabel: 'Inhalt laden',
             alwaysAllowLabel: 'Externe Medien auf dieser Website immer erlauben',
             learnMore: 'Mehr erfahren',
