@@ -557,8 +557,8 @@ html.js-enabled .embed-consent-nojs-wrapper iframe {
     }
 
     .embed-consent-icon img {
-        max-width: 100px;
-        max-height: 40px;
+        max-width: 90px;
+        max-height: 36px;
     }
 
     .embed-consent-checkbox {
@@ -611,8 +611,11 @@ html.js-enabled .embed-consent-nojs-wrapper iframe {
     }
 
     .embed-consent-icon img {
-        max-width: 80px;
-        max-height: 32px;
+        display: none;
+    }
+
+    .embed-consent-icon {
+        margin-bottom: 0;
     }
 
     .embed-consent-checkbox {
