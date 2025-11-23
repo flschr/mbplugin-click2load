@@ -37,6 +37,10 @@
     --embed-consent-overlay-text: rgba(30, 30, 30, 0.95);
     --embed-consent-overlay-text-strong: rgba(30, 30, 30, 1);
     --embed-consent-overlay-text-muted: rgba(60, 60, 60, 0.85);
+
+    /* Z-Index layers */
+    --embed-consent-z-overlay: 10;
+    --embed-consent-z-content: 20;
 }
 
 /* Dark mode support - using :root for broader compatibility */
@@ -190,7 +194,7 @@
     justify-content: center;
     background-color: var(--embed-consent-overlay-bg);
     border-radius: var(--embed-consent-radius);
-    z-index: 10;
+    z-index: var(--embed-consent-z-overlay);
     padding: 1.5rem;
     box-sizing: border-box;
 }
@@ -224,7 +228,7 @@
 
 .embed-consent-content {
     position: relative;
-    z-index: 20;
+    z-index: var(--embed-consent-z-content);
     text-align: center;
     width: 100%;
     max-width: min(80%, 1100px);
@@ -630,6 +634,7 @@ html.js-enabled .embed-consent-nojs-wrapper iframe {
    ======================================== */
 
 @media (prefers-reduced-motion: reduce) {
+
     .embed-consent-iframe,
     .embed-consent-button {
         transition: none;

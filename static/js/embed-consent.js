@@ -14,7 +14,7 @@
  * - Service Worker cache loads
  */
 
-(function() {
+(function () {
     'use strict';
 
     // Constants
@@ -41,6 +41,8 @@
         showAlwaysAllowOption: true,
         language: 'en',
         privacyPolicyUrl: '',
+        baseUrl: '', // Base URL for assets (logos)
+        providers: {}, // Custom providers
         excludeSelectors: ['.no-consent', '[data-no-consent]']
     };
 
@@ -171,7 +173,7 @@
         return function executedFunction() {
             const context = this;
             const args = arguments;
-            const later = function() {
+            const later = function () {
                 timeout = null;
                 func.apply(context, args);
             };
@@ -234,6 +236,14 @@
             if (root.dataset.embedConsentPrivacyUrl) {
                 config.privacyPolicyUrl = root.dataset.embedConsentPrivacyUrl;
             }
+            if (root.dataset.embedConsentBaseUrl) {
+                config.baseUrl = root.dataset.embedConsentBaseUrl;
+            }
+        }
+
+        // Allow global override via window object (useful for custom providers)
+        if (window.EmbedConsentConfig) {
+            Object.assign(config, window.EmbedConsentConfig);
         }
 
         // Cache the configuration
@@ -288,11 +298,25 @@
     /**
      * Detect provider from iframe src
      */
-    function detectProvider(src) {
+    function detectProvider(src, config) {
         if (!src) return 'generic';
 
-        for (const [provider, config] of Object.entries(PROVIDERS)) {
-            for (const pattern of config.patterns) {
+        // Check custom providers first
+        if (config.providers) {
+            for (const [provider, providerConfig] of Object.entries(config.providers)) {
+                if (providerConfig.patterns) {
+                    for (const pattern of providerConfig.patterns) {
+                        if (pattern.test(src)) {
+                            return provider;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Check built-in providers
+        for (const [provider, providerConfig] of Object.entries(PROVIDERS)) {
+            for (const pattern of providerConfig.patterns) {
                 if (pattern.test(src)) {
                     return provider;
                 }
@@ -305,8 +329,13 @@
     /**
      * Get provider display name
      */
-    function getProviderName(provider, lang) {
-        const translations = TRANSLATIONS[lang] || TRANSLATIONS.en;
+    function getProviderName(provider, config) {
+        // Check custom providers first
+        if (config.providers && config.providers[provider] && config.providers[provider].name) {
+            return config.providers[provider].name;
+        }
+
+        const translations = TRANSLATIONS[config.language] || TRANSLATIONS.en;
         const key = 'provider' + provider.charAt(0).toUpperCase() + provider.slice(1);
         return translations[key] || PROVIDERS[provider]?.name || translations.providerGeneric;
     }
@@ -315,8 +344,8 @@
      * Create consent overlay HTML
      */
     function createOverlay(provider, config, translations) {
-        const providerName = getProviderName(provider, config.language);
-        const providerLogo = PROVIDERS[provider]?.logo;
+        const providerName = getProviderName(provider, config);
+        // Logo handling moved to below
 
         // Use provider-specific text if we know the provider, otherwise use generic text
         let consentText = translations.consentText;
@@ -340,10 +369,27 @@
         }
 
         let logoHtml = '';
-        if (providerLogo) {
-            const logoWidth = PROVIDERS[provider]?.logoWidth || 100;
-            const logoHeight = PROVIDERS[provider]?.logoHeight || 40;
-            logoHtml = `<img src="${providerLogo}" alt="${providerName} Logo" width="${logoWidth}" height="${logoHeight}">`;
+
+        // Check custom providers first
+        let customLogo = config.providers && config.providers[provider] && config.providers[provider].logo;
+
+        // Then built-in providers
+        let builtInLogo = PROVIDERS[provider]?.logo;
+
+        let logoSrc = customLogo || builtInLogo;
+
+        if (logoSrc) {
+            // Prepend base URL if it's a relative path and not a data URI
+            if (config.baseUrl && !logoSrc.startsWith('http') && !logoSrc.startsWith('data:')) {
+                // Remove leading slash if present to avoid double slashes when joining
+                const cleanBase = config.baseUrl.replace(/\/$/, '');
+                const cleanPath = logoSrc.startsWith('/') ? logoSrc : '/' + logoSrc;
+                logoSrc = cleanBase + cleanPath;
+            }
+
+            const logoWidth = (config.providers && config.providers[provider]?.logoWidth) || PROVIDERS[provider]?.logoWidth || 100;
+            const logoHeight = (config.providers && config.providers[provider]?.logoHeight) || PROVIDERS[provider]?.logoHeight || 40;
+            logoHtml = `<img src="${logoSrc}" alt="${providerName} Logo" width="${logoWidth}" height="${logoHeight}">`;
         }
 
         return `
@@ -414,8 +460,12 @@
      * Configure wrapper aspect ratio based on iframe dimensions
      * Consolidated function to reduce code duplication
      */
-    function configureAspectRatio(wrapper, iframe) {
-        const dimensions = calculateDimensions(iframe);
+    /**
+     * Configure wrapper aspect ratio based on iframe dimensions
+     * Consolidated function to reduce code duplication
+     */
+    function configureAspectRatio(wrapper, iframe, preCalculatedDimensions = null) {
+        const dimensions = preCalculatedDimensions || calculateDimensions(iframe);
         const hasHeight = dimensions.height;
         const hasWidth = dimensions.width;
 
@@ -441,18 +491,41 @@
     /**
      * Wrap an iframe with consent overlay
      */
-    function wrapIframe(iframe, config) {
+    /**
+     * Check if iframe should be wrapped
+     */
+    function canWrapIframe(iframe, config) {
         // Skip if already wrapped or processed
         if (iframe.closest('.embed-consent-wrapper') || iframe.dataset.consentProcessed === 'true') {
-            return;
+            return false;
         }
 
         // Skip if matches exclude selector
         for (const selector of config.excludeSelectors) {
             if (iframe.matches(selector)) {
-                return;
+                return false;
             }
         }
+
+        // Check for src
+        const src = iframe.src || iframe.dataset.src || iframe.dataset.consentSrc;
+        if (!src) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Wrap an iframe with consent overlay
+     */
+    function wrapIframe(iframe, config, preCalculatedDimensions = null) {
+        if (!canWrapIframe(iframe, config)) {
+            return;
+        }
+
+        // Check for src in multiple places (re-check needed for extraction)
+        const src = iframe.src || iframe.dataset.src || iframe.dataset.consentSrc;
 
         // Check if iframe is already in a no-JS wrapper from early blocker
         const noJsWrapper = iframe.closest('.embed-consent-nojs-wrapper');
@@ -463,19 +536,10 @@
             noJsWrapper.remove();
         }
 
-        // Check for src in multiple places:
-        // 1. iframe.src - normal src attribute
-        // 2. iframe.dataset.src - data-src attribute (lazy loading)
-        // 3. iframe.dataset.consentSrc - already blocked by early script
-        const src = iframe.src || iframe.dataset.src || iframe.dataset.consentSrc;
-        if (!src) {
-            return; // No src to load
-        }
-
         // Mark as processed to prevent race conditions
         iframe.dataset.consentProcessed = 'true';
 
-        const provider = detectProvider(src);
+        const provider = detectProvider(src, config);
         const translations = TRANSLATIONS[config.language] || TRANSLATIONS.en;
 
         // Create wrapper
@@ -484,7 +548,7 @@
         wrapper.dataset.provider = provider;
 
         // Configure aspect ratio (refactored logic)
-        configureAspectRatio(wrapper, iframe);
+        configureAspectRatio(wrapper, iframe, preCalculatedDimensions);
 
         // Store original src and remove it (if not already done by early blocker script)
         if (!iframe.dataset.consentSrc) {
@@ -520,7 +584,7 @@
 
         // Handle button click
         if (button) {
-            button.addEventListener('click', function(e) {
+            button.addEventListener('click', function (e) {
                 e.preventDefault();
 
                 // Save preference if checkbox is checked
@@ -608,13 +672,33 @@
     /**
      * Process all iframes on the page
      */
+    /**
+     * Process all iframes on the page
+     * Optimized to batch DOM reads and writes
+     */
     function processAllIframes() {
         const config = getConfig();
         const iframes = document.querySelectorAll('iframe');
+        const toWrap = [];
 
+        // Read phase: Identify candidates and measure dimensions
         for (const iframe of iframes) {
             try {
-                wrapIframe(iframe, config);
+                if (canWrapIframe(iframe, config)) {
+                    toWrap.push({
+                        iframe: iframe,
+                        dimensions: calculateDimensions(iframe)
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to check iframe:', error);
+            }
+        }
+
+        // Write phase: Apply wrappers
+        for (const item of toWrap) {
+            try {
+                wrapIframe(item.iframe, config, item.dimensions);
             } catch (error) {
                 console.error('Failed to wrap iframe:', error);
             }
@@ -624,27 +708,51 @@
     /**
      * Process only newly added iframes (optimized for performance)
      */
+    /**
+     * Process only newly added iframes (optimized for performance)
+     */
     function processNewIframes(addedNodes) {
         const config = getConfig();
+        const candidates = [];
 
+        // Collect candidates
         for (const node of addedNodes) {
             if (node.nodeType !== 1) continue; // Skip non-element nodes
 
             try {
                 // Check if the node itself is an iframe
                 if (node.tagName === 'IFRAME') {
-                    wrapIframe(node, config);
+                    candidates.push(node);
                 }
                 // Check if the node contains iframes
                 else if (node.querySelectorAll) {
                     const iframes = node.querySelectorAll('iframe');
                     for (const iframe of iframes) {
-                        wrapIframe(iframe, config);
+                        candidates.push(iframe);
                     }
                 }
             } catch (error) {
-                console.error('Failed to wrap iframe:', error);
+                console.error('Failed to find iframes:', error);
             }
+        }
+
+        if (candidates.length === 0) return;
+
+        const toWrap = [];
+
+        // Read phase
+        for (const iframe of candidates) {
+            if (canWrapIframe(iframe, config)) {
+                toWrap.push({
+                    iframe: iframe,
+                    dimensions: calculateDimensions(iframe)
+                });
+            }
+        }
+
+        // Write phase
+        for (const item of toWrap) {
+            wrapIframe(item.iframe, config, item.dimensions);
         }
     }
 
@@ -678,7 +786,7 @@
         /**
          * Reset consent preference
          */
-        reset: function() {
+        reset: function () {
             if (!isLocalStorageAvailable()) {
                 const msg = 'LocalStorage is not available in your browser.';
                 showNotification(msg, 'warning');
@@ -708,7 +816,7 @@
         /**
          * Get current consent status
          */
-        getStatus: function() {
+        getStatus: function () {
             if (!isLocalStorageAvailable()) {
                 return {
                     available: false,
@@ -786,7 +894,7 @@
         // Watch for new iframes added dynamically (optimized with debouncing)
         if (typeof MutationObserver !== 'undefined') {
             // Create debounced handler for better performance
-            const debouncedHandler = debounce(function(mutations) {
+            const debouncedHandler = debounce(function (mutations) {
                 const addedNodes = [];
 
                 // Collect all added element nodes efficiently
@@ -821,7 +929,7 @@
      * We must wait until page is actually shown to load iframes
      */
     if (document.prerendering) {
-        document.addEventListener('prerenderingchange', function() {
+        document.addEventListener('prerenderingchange', function () {
             isPrerendering = false;
             // Process any iframes that were waiting for prerender to complete
             processPendingLoads();
@@ -833,7 +941,7 @@
      * Prevents iframe loading when tab is in background
      * Also handles mobile pull-to-refresh scenarios
      */
-    document.addEventListener('visibilitychange', function() {
+    document.addEventListener('visibilitychange', function () {
         const wasVisible = isPageVisible;
         isPageVisible = !document.hidden;
 
@@ -848,11 +956,11 @@
      * Prevents unwanted iframe loading during print
      * Some browsers re-initialize iframes in print preview
      */
-    window.addEventListener('beforeprint', function() {
+    window.addEventListener('beforeprint', function () {
         isPrinting = true;
     });
 
-    window.addEventListener('afterprint', function() {
+    window.addEventListener('afterprint', function () {
         isPrinting = false;
         // Process any pending loads after print is done
         processPendingLoads();
@@ -863,14 +971,14 @@
      * This prevents iframes from auto-loading when navigating back
      * Also handles mobile pull-to-refresh in combination with visibilitychange
      */
-    window.addEventListener('pageshow', function(event) {
+    window.addEventListener('pageshow', function (event) {
         if (event.persisted) {
             // Page was restored from bfcache (back/forward navigation)
             handleBfcacheRestore();
 
             // After restoring, process pending loads if conditions are met
             // This handles edge cases where bfcache + visibility state interact
-            setTimeout(function() {
+            setTimeout(function () {
                 processPendingLoads();
             }, 50);
         }
