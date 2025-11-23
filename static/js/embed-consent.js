@@ -341,8 +341,8 @@
 
         let logoHtml = '';
         if (providerLogo) {
-            const logoWidth = PROVIDERS[provider]?.logoWidth || 120;
-            const logoHeight = PROVIDERS[provider]?.logoHeight || 48;
+            const logoWidth = PROVIDERS[provider]?.logoWidth || 100;
+            const logoHeight = PROVIDERS[provider]?.logoHeight || 40;
             logoHtml = `<img src="${providerLogo}" alt="${providerName} Logo" width="${logoWidth}" height="${logoHeight}">`;
         }
 
