@@ -4,7 +4,7 @@
  * Automatically detects and wraps all iframes with consent overlay.
  * No manual shortcode usage required - works with existing iframes!
  *
- * @version 2.3.0
+ * @version 2.3.1
  *
  * Edge Cases Handled:
  * - Prerendering (Chrome Speculation Rules)
@@ -12,13 +12,21 @@
  * - Print Preview (beforeprint/afterprint)
  * - bfcache & Pull-to-Refresh
  * - Service Worker cache loads
+ *
+ * Improvements in 2.3.1:
+ * - Enhanced error handling with try-catch in all event listeners
+ * - Comprehensive null-checks for DOM operations
+ * - URL validation to prevent XSS attacks
+ * - Performance optimizations (localStorage check caching, provider detection caching)
+ * - Memory leak prevention with AbortController for event listeners
+ * - Race condition fixes in iframe wrapping
  */
 
 (function () {
     'use strict';
 
     // Constants
-    const VERSION = '2.3.0';
+    const VERSION = '2.3.1';
     const STORAGE_KEY = 'embedConsentAlwaysAllow';
     const DEBOUNCE_DELAY = 150; // ms
     const DEFAULT_ASPECT_RATIO = 56.25; // 16:9 in percentage
@@ -29,6 +37,15 @@
 
     // Cache configuration to avoid repeated DOM queries
     let cachedConfig = null;
+
+    // Cache localStorage availability check (computed once)
+    let cachedLocalStorageAvailable = null;
+
+    // Cache provider detection results (src -> provider)
+    const providerCache = new Map();
+
+    // Store event listeners for cleanup (WeakMap: wrapper -> abort controller)
+    const eventListenerCleanup = new WeakMap();
 
     // Track page state for edge cases
     let isPageVisible = !document.hidden;
@@ -166,6 +183,32 @@
     }
 
     /**
+     * Validate URL to prevent XSS via javascript: or data: protocols
+     */
+    function isValidUrl(url) {
+        if (!url || typeof url !== 'string') return false;
+
+        // Trim whitespace
+        url = url.trim();
+
+        // Allow relative URLs (starting with / or ./)
+        if (url.startsWith('/') || url.startsWith('./') || url.startsWith('../')) {
+            return true;
+        }
+
+        // For absolute URLs, check protocol
+        try {
+            const urlObj = new URL(url, window.location.href);
+            const protocol = urlObj.protocol.toLowerCase();
+            // Only allow http, https, and mailto
+            return protocol === 'http:' || protocol === 'https:' || protocol === 'mailto:';
+        } catch (e) {
+            // If URL parsing fails, it's invalid
+            return false;
+        }
+    }
+
+    /**
      * Debounce function to limit execution rate
      */
     function debounce(func, wait) {
@@ -252,15 +295,23 @@
     }
 
     /**
-     * Check if localStorage is available
+     * Check if localStorage is available (cached for performance)
      */
     function isLocalStorageAvailable() {
+        // Return cached result if available
+        if (cachedLocalStorageAvailable !== null) {
+            return cachedLocalStorageAvailable;
+        }
+
+        // Perform the check and cache the result
         try {
             const test = '__localStorage_test__';
             localStorage.setItem(test, test);
             localStorage.removeItem(test);
+            cachedLocalStorageAvailable = true;
             return true;
         } catch (e) {
+            cachedLocalStorageAvailable = false;
             return false;
         }
     }
@@ -296,10 +347,17 @@
     }
 
     /**
-     * Detect provider from iframe src
+     * Detect provider from iframe src (with caching for performance)
      */
     function detectProvider(src, config) {
         if (!src) return 'generic';
+
+        // Check cache first
+        if (providerCache.has(src)) {
+            return providerCache.get(src);
+        }
+
+        let detectedProvider = 'generic';
 
         // Check custom providers first
         if (config.providers) {
@@ -307,7 +365,9 @@
                 if (providerConfig.patterns) {
                     for (const pattern of providerConfig.patterns) {
                         if (pattern.test(src)) {
-                            return provider;
+                            detectedProvider = provider;
+                            providerCache.set(src, detectedProvider);
+                            return detectedProvider;
                         }
                     }
                 }
@@ -318,12 +378,16 @@
         for (const [provider, providerConfig] of Object.entries(PROVIDERS)) {
             for (const pattern of providerConfig.patterns) {
                 if (pattern.test(src)) {
-                    return provider;
+                    detectedProvider = provider;
+                    providerCache.set(src, detectedProvider);
+                    return detectedProvider;
                 }
             }
         }
 
-        return 'generic';
+        // Cache the generic result too
+        providerCache.set(src, detectedProvider);
+        return detectedProvider;
     }
 
     /**
@@ -342,6 +406,7 @@
 
     /**
      * Create consent overlay HTML
+     * Returns both HTML string and element references for optimization
      */
     function createOverlay(provider, config, translations) {
         const providerName = getProviderName(provider, config);
@@ -354,8 +419,8 @@
         }
 
         let privacyLink = '';
-        if (config.privacyPolicyUrl) {
-            privacyLink = `<br><a href="${escapeHtml(config.privacyPolicyUrl)}" class="embed-consent-privacy-link">${escapeHtml(translations.learnMore)}</a>`;
+        if (config.privacyPolicyUrl && isValidUrl(config.privacyPolicyUrl)) {
+            privacyLink = `<br><a href="${escapeHtml(config.privacyPolicyUrl)}" class="embed-consent-privacy-link" rel="noopener noreferrer">${escapeHtml(translations.learnMore)}</a>`;
         }
 
         let checkboxHtml = '';
@@ -500,9 +565,15 @@
             return false;
         }
 
+        // Mark as being processed immediately to prevent race conditions
+        // This is checked again in wrapIframe for double-checking
+        iframe.dataset.consentProcessed = 'processing';
+
         // Skip if matches exclude selector
         for (const selector of config.excludeSelectors) {
             if (iframe.matches(selector)) {
+                // Reset processing flag if we're skipping
+                delete iframe.dataset.consentProcessed;
                 return false;
             }
         }
@@ -510,6 +581,8 @@
         // Check for src
         const src = iframe.src || iframe.dataset.src || iframe.dataset.consentSrc;
         if (!src) {
+            // Reset processing flag if no src
+            delete iframe.dataset.consentProcessed;
             return false;
         }
 
@@ -520,12 +593,18 @@
      * Wrap an iframe with consent overlay
      */
     function wrapIframe(iframe, config, preCalculatedDimensions = null) {
-        if (!canWrapIframe(iframe, config)) {
+        // Double-check to prevent race conditions
+        // canWrapIframe already sets 'processing', now verify again
+        if (iframe.dataset.consentProcessed === 'true' || iframe.closest('.embed-consent-wrapper')) {
             return;
         }
 
         // Check for src in multiple places (re-check needed for extraction)
         const src = iframe.src || iframe.dataset.src || iframe.dataset.consentSrc;
+        if (!src) {
+            delete iframe.dataset.consentProcessed;
+            return;
+        }
 
         // Check if iframe is already in a no-JS wrapper from early blocker
         const noJsWrapper = iframe.closest('.embed-consent-nojs-wrapper');
@@ -536,7 +615,7 @@
             noJsWrapper.remove();
         }
 
-        // Mark as processed to prevent race conditions
+        // Mark as fully processed to prevent race conditions
         iframe.dataset.consentProcessed = 'true';
 
         const provider = detectProvider(src, config);
@@ -562,7 +641,12 @@
         iframe.classList.add('embed-consent-iframe');
 
         // Insert wrapper before iframe
-        iframe.parentNode.insertBefore(wrapper, iframe);
+        const parentNode = iframe.parentNode;
+        if (!parentNode) {
+            console.warn('Cannot wrap iframe: parent node not found');
+            return;
+        }
+        parentNode.insertBefore(wrapper, iframe);
 
         // Move iframe into wrapper
         wrapper.appendChild(iframe);
@@ -582,19 +666,29 @@
             return;
         }
 
-        // Handle button click
+        // Handle button click with cleanup support
         if (button) {
+            const abortController = new AbortController();
+            eventListenerCleanup.set(wrapper, abortController);
+
             button.addEventListener('click', function (e) {
-                e.preventDefault();
+                try {
+                    e.preventDefault();
 
-                // Save preference if checkbox is checked
-                if (config.enableLocalStorage && config.showAlwaysAllowOption && checkbox && checkbox.checked) {
-                    saveConsent(true);
+                    // Save preference if checkbox is checked
+                    if (config.enableLocalStorage && config.showAlwaysAllowOption && checkbox && checkbox.checked) {
+                        saveConsent(true);
+                    }
+
+                    // Load the iframe
+                    loadIframe(wrapper, iframe);
+
+                    // Cleanup listener after use
+                    abortController.abort();
+                } catch (error) {
+                    console.error('Error handling consent button click:', error);
                 }
-
-                // Load the iframe
-                loadIframe(wrapper, iframe);
-            });
+            }, { signal: abortController.signal });
         }
     }
 
@@ -640,12 +734,14 @@
         iframe.src = src;
 
         // Mark wrapper as active
-        wrapper.classList.add('embed-consent-active');
+        if (wrapper) {
+            wrapper.classList.add('embed-consent-active');
 
-        // Hide overlay
-        const overlay = wrapper.querySelector('.embed-consent-overlay');
-        if (overlay) {
-            overlay.style.display = 'none';
+            // Hide overlay
+            const overlay = wrapper.querySelector('.embed-consent-overlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
         }
     }
 
@@ -777,6 +873,10 @@
             mutationObserver.disconnect();
             mutationObserver = null;
         }
+
+        // Note: eventListenerCleanup uses WeakMap, so it will be
+        // garbage collected automatically when wrappers are removed
+        // No manual cleanup needed for AbortControllers
     }
 
     /**
@@ -860,6 +960,8 @@
         const wrappers = document.querySelectorAll('.embed-consent-wrapper.embed-consent-active');
 
         for (const wrapper of wrappers) {
+            if (!wrapper) continue;
+
             const iframe = wrapper.querySelector('iframe');
             const overlay = wrapper.querySelector('.embed-consent-overlay');
 
@@ -930,9 +1032,13 @@
      */
     if (document.prerendering) {
         document.addEventListener('prerenderingchange', function () {
-            isPrerendering = false;
-            // Process any iframes that were waiting for prerender to complete
-            processPendingLoads();
+            try {
+                isPrerendering = false;
+                // Process any iframes that were waiting for prerender to complete
+                processPendingLoads();
+            } catch (error) {
+                console.error('Error handling prerendering change:', error);
+            }
         }, { once: true });
     }
 
@@ -942,12 +1048,16 @@
      * Also handles mobile pull-to-refresh scenarios
      */
     document.addEventListener('visibilitychange', function () {
-        const wasVisible = isPageVisible;
-        isPageVisible = !document.hidden;
+        try {
+            const wasVisible = isPageVisible;
+            isPageVisible = !document.hidden;
 
-        // If page just became visible, process pending loads
-        if (!wasVisible && isPageVisible) {
-            processPendingLoads();
+            // If page just became visible, process pending loads
+            if (!wasVisible && isPageVisible) {
+                processPendingLoads();
+            }
+        } catch (error) {
+            console.error('Error handling visibility change:', error);
         }
     });
 
@@ -957,13 +1067,21 @@
      * Some browsers re-initialize iframes in print preview
      */
     window.addEventListener('beforeprint', function () {
-        isPrinting = true;
+        try {
+            isPrinting = true;
+        } catch (error) {
+            console.error('Error handling beforeprint:', error);
+        }
     });
 
     window.addEventListener('afterprint', function () {
-        isPrinting = false;
-        // Process any pending loads after print is done
-        processPendingLoads();
+        try {
+            isPrinting = false;
+            // Process any pending loads after print is done
+            processPendingLoads();
+        } catch (error) {
+            console.error('Error handling afterprint:', error);
+        }
     });
 
     /**
@@ -972,23 +1090,41 @@
      * Also handles mobile pull-to-refresh in combination with visibilitychange
      */
     window.addEventListener('pageshow', function (event) {
-        if (event.persisted) {
-            // Page was restored from bfcache (back/forward navigation)
-            handleBfcacheRestore();
+        try {
+            if (event.persisted) {
+                // Page was restored from bfcache (back/forward navigation)
+                handleBfcacheRestore();
 
-            // After restoring, process pending loads if conditions are met
-            // This handles edge cases where bfcache + visibility state interact
-            setTimeout(function () {
-                processPendingLoads();
-            }, 50);
+                // After restoring, process pending loads if conditions are met
+                // This handles edge cases where bfcache + visibility state interact
+                setTimeout(function () {
+                    try {
+                        processPendingLoads();
+                    } catch (error) {
+                        console.error('Error processing pending loads after bfcache:', error);
+                    }
+                }, 50);
+            }
+        } catch (error) {
+            console.error('Error handling pageshow event:', error);
         }
     });
 
     // Start when DOM is ready
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initialize);
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                initialize();
+            } catch (error) {
+                console.error('Error during initialization:', error);
+            }
+        });
     } else {
-        initialize();
+        try {
+            initialize();
+        } catch (error) {
+            console.error('Error during initialization:', error);
+        }
     }
 
 })();
